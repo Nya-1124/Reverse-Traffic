@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101418">
+  <meta name="description" content="反方向紅綠燈：按住煞車、放開前進。燈號會換，規則也會反轉。">
+  <meta name="google" content="notranslate">
+  <title>反方向紅綠燈</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect rx='6' width='32' height='32' fill='%2314191e'/%3E%3Ccircle cx='16' cy='10' r='5' fill='%23e23b3b'/%3E%3Ccircle cx='16' cy='22' r='5' fill='%231f9d55'/%3E%3C/svg%3E">
+  <style>
+    @font-face {
+      font-family: "Noto Sans TC";
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url("fonts/noto-sans-tc-500.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Noto Sans TC";
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url("fonts/noto-sans-tc-700.woff2") format("woff2");
+    }
+
+    :root {
+      --bg: #101418;
+      --ink: #f4f1e6;
+      --muted: #a8b0b6;
+      --line: #2c353c;
+      --sign: #f3efe4;
+      --sign-ink: #171b1f;
+      --red: #e23b3b;
+      --green: #1f9d55;
+      --amber: #f0b429;
+      --shadow: #070809;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    button, p, h1, h2 { margin: 0; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    #app {
+      width: min(420px, 100%);
+      height: 100vh;
+      height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: calc(12px + env(safe-area-inset-top)) 14px calc(8px + env(safe-area-inset-bottom));
+      background:
+        radial-gradient(120% 40% at 50% 0%, rgba(255,255,255,0.04), transparent 55%),
+        var(--bg);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .eyebrow {
+      font-family: ui-sans-serif, "Segoe UI", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.2; }
+    .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .timer { font-size: 28px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; text-align: right; }
+    .timer small {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+    .timer .sec { font-size: 14px; margin-left: 2px; }
+    .timer.is-low { color: var(--amber); }
+    #pauseBtn {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid #3a444c;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    #bestLine { color: var(--muted); font-size: 13px; line-height: 1.3; min-height: 1.3em; }
+    #storageNote { color: var(--amber); font-size: 12px; line-height: 1.4; }
+
+    #ruleSign {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--sign);
+      color: var(--sign-ink);
+      border: 3px solid var(--sign-ink);
+      border-radius: 16px;
+      padding: 11px 14px;
+      box-shadow: 4px 4px 0 var(--shadow);
+    }
+    #seal {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      background: var(--sign-ink);
+      color: var(--sign);
+      font-weight: 700;
+      font-size: 18px;
+      border-radius: 50%;
+    }
+    #ruleSign.is-reverse #seal { border-radius: 6px; transform: rotate(45deg); }
+    #ruleSign.is-reverse #seal span { transform: rotate(-45deg); display: block; }
+    #ruleKicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
+    #ruleMain { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: 0.01em; }
+
+    #signal { display: flex; align-items: center; gap: 14px; min-height: 92px; }
+    .housing {
+      width: 74px;
+      flex: none;
+      padding: 8px;
+      border-radius: 18px;
+      background: #0c1014;
+      border: 2px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lamp {
+      height: 52px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #1a2128;
+      transition: background-color 140ms linear;
+    }
+    .lamp.is-on.is-red { background: var(--red); }
+    .lamp.is-on.is-green { background: var(--green); }
+    .shape { width: 30px; height: 30px; color: #f7f4ee; }
+    .lamp:not(.is-on) .shape { opacity: 0.38; }
+    .now { min-width: 0; }
+    #nowKicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
+    #nowAction { font-size: 32px; font-weight: 700; line-height: 1.15; }
+
+    #banner { min-height: 34px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    #bannerText {
+      min-height: 1.2em;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    #banner.is-warn #bannerText { color: #f6d98a; }
+    #banner.is-grace #bannerText { color: #d7efe0; }
+    #graceTrack { height: 6px; border-radius: 99px; background: #243028; overflow: hidden; }
+    #graceFill { display: block; height: 100%; width: 100%; background: #d7efe0; transform-origin: left center; }
+
+    .meter-row { display: flex; align-items: center; gap: 10px; }
+    .meter { flex: 1; height: 8px; border-radius: 99px; background: #0c1014; overflow: hidden; }
+    #meterFill { display: block; height: 100%; width: 0; background: var(--sign); }
+    #progressText { flex: none; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+    #hold { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+    #lane {
+      position: relative;
+      flex: 1;
+      min-height: 128px;
+      border-radius: 18px;
+      background: #1b2127;
+      border: 2px solid var(--line);
+      overflow: hidden;
+    }
+    #lane::before, #lane::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #efe8d4;
+    }
+    #lane::before { left: 10px; }
+    #lane::after { right: 10px; }
+    .finish {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: repeating-linear-gradient(90deg, #f3efe4 0 8px, #1a1e22 8px 16px);
+      z-index: 1;
+    }
+    .finish span {
+      background: #1a1e22;
+      color: #f3efe4;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    #dashes {
+      position: absolute;
+      top: 36px;
+      bottom: 10px;
+      left: 50%;
+      width: 4px;
+      margin-left: -2px;
+      background-image: repeating-linear-gradient(to bottom, #efe8d4 0 10px, transparent 10px 22px);
+      opacity: 0.75;
+    }
+    #car {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      width: 34px;
+      height: 34px;
+      margin-left: -17px;
+      border-radius: 8px;
+      background: var(--sign);
+      border: 2px solid #171b1f;
+      box-shadow: 3px 3px 0 var(--shadow);
+      z-index: 2;
+    }
+    #car .nose {
+      position: absolute;
+      top: 6px;
+      left: 7px;
+      right: 7px;
+      height: 6px;
+      border-radius: 2px;
+      background: #171b1f;
+    }
+    #car .lights {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    #car .lights i {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: #6a3a3e;
+    }
+    #car.is-braking { transform: scale(1.04, 0.92); }
+    #car.is-braking .lights i { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    #car.is-moving { animation: bob 0.45s ease-in-out infinite; }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #car.is-moving { animation: none; }
+    }
+
+    #pedal {
+      flex: none;
+      min-height: 124px;
+      border-radius: 18px;
+      border: 3px solid var(--sign);
+      background: #242a31;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      box-shadow: 0 6px 0 var(--shadow);
+      transition: transform 80ms ease, box-shadow 80ms ease, background-color 80ms ease;
+    }
+    #pedal.is-held {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--shadow);
+      background: #3a2226;
+    }
+    .brake-lamp {
+      width: 48px;
+      height: 8px;
+      border-radius: 99px;
+      background: #5a3034;
+      margin-bottom: 4px;
+    }
+    #pedal.is-held .brake-lamp { background: var(--red); box-shadow: 0 0 12px rgba(226, 59, 59, 0.85); }
+    .pedal-title { font-size: 28px; font-weight: 700; }
+    .pedal-sub { font-size: 14px; color: #d5dbe0; min-height: 1.2em; }
+
+    #hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+    #app[data-mode="won"] #hint,
+    #app[data-mode="lost"] #hint,
+    #app[data-mode="paused"] #hint { visibility: hidden; }
+    .kb { display: none; }
+    @media (hover: hover) and (pointer: fine) {
+      .kb { display: inline; }
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 18px 16px 22px;
+      background: linear-gradient(to bottom, rgba(8, 10, 12, 0.04) 0%, rgba(8, 10, 12, 0.62) 30%, #101418 68%);
+    }
+    .card {
+      width: min(100%, 360px);
+      background: var(--sign);
+      color: var(--sign-ink);
+      border: 3px solid var(--sign-ink);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: 6px 6px 0 var(--shadow);
+    }
+    .card-kicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
+    .card[data-kind="lose"] .card-kicker { color: #9d1f2c; }
+    .card[data-kind="win"] .card-kicker { color: #0e6b3c; }
+    #cardTitle { font-size: 32px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+    #cardDetail, #cardMeta { margin-top: 8px; font-size: 16px; line-height: 1.45; }
+    #cardMeta { font-weight: 700; }
+    #cardBtn {
+      width: 100%;
+      height: 54px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--sign-ink);
+      color: var(--sign);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    @media (min-width: 860px) {
+      body {
+        display: grid;
+        place-items: center;
+        background-color: #0c0f12;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+        background-size: 28px 28px;
+      }
+      #app {
+        height: min(844px, calc(100dvh - 32px));
+        width: 420px;
+        border-radius: 28px;
+        border: 1px solid #2a3138;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+    }
+    @media (max-height: 740px) {
+      #ruleMain { font-size: 22px; }
+      #nowAction { font-size: 26px; }
+      #pedal { min-height: 96px; }
+      .pedal-title { font-size: 22px; }
+      .lamp { height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <noscript><p style="padding:24px">請開啟 JavaScript 才能玩。</p></noscript>
+  <main id="app" role="application" aria-label="反方向紅綠燈" aria-describedby="hint">
+    <header>
+      <div>
+        <p class="eyebrow">REVERSE TRAFFIC</p>
+        <h1>反方向紅綠燈</h1>
+      </div>
+      <div class="hud-right">
+        <p class="timer" id="timer"><small>剩餘</small><span id="timeValue">30.0</span><span class="sec">秒</span></p>
+        <button id="pauseBtn" type="button" data-no-brake>暫停</button>
+      </div>
+    </header>
+    <p id="bestLine">尚無紀錄</p>
+    <p id="storageNote" hidden>無法寫入裝置，成績只留在這次開啟。</p>
+
+    <section id="ruleSign" aria-live="polite">
+      <div id="seal" aria-hidden="true"><span id="sealText">正</span></div>
+      <div>
+        <p id="ruleKicker">正常規則</p>
+        <p id="ruleMain">綠燈前進 · 紅燈停止</p>
+      </div>
+    </section>
+
+    <section id="signal">
+      <div class="housing" aria-hidden="true">
+        <div class="lamp is-red" id="lampRed">
+          <svg class="shape" viewBox="0 0 64 64">
+            <polygon points="20,2 44,2 62,20 62,44 44,62 20,62 2,44 2,20" fill="currentColor"></polygon>
+            <rect x="16" y="28" width="32" height="8" fill="#1a1e22"></rect>
+          </svg>
+        </div>
+        <div class="lamp is-green" id="lampGreen">
+          <svg class="shape" viewBox="0 0 64 64">
+            <polygon points="32,6 58,56 6,56" fill="currentColor"></polygon>
+          </svg>
+        </div>
+      </div>
+      <div class="now">
+        <p id="nowKicker">綠燈</p>
+        <p id="nowAction">現在要前進</p>
+      </div>
+    </section>
+
+    <div id="banner" role="status">
+      <p id="bannerText"></p>
+      <div id="graceTrack" hidden><span id="graceFill"></span></div>
+    </div>
+
+    <div class="meter-row">
+      <div class="meter" id="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="到終點的進度">
+        <span id="meterFill"></span>
+      </div>
+      <p id="progressText">進度 0%</p>
+    </div>
+
+    <div id="hold">
+      <div id="lane">
+        <div class="finish"><span>終點</span></div>
+        <div id="dashes"></div>
+        <div id="car" aria-hidden="true">
+          <div class="nose"></div>
+          <div class="lights"><i></i><i></i></div>
+        </div>
+      </div>
+      <div id="pedal" aria-live="polite">
+        <div class="brake-lamp"></div>
+        <div class="pedal-title">按住煞車</div>
+        <div class="pedal-sub" id="pedalSub">放開前進</div>
+      </div>
+    </div>
+
+    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
+
+    <div id="overlay" hidden data-no-brake>
+      <section class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle" data-kind="pause">
+        <p class="card-kicker" id="cardKicker">已暫停</p>
+        <h2 id="cardTitle">時間不會流逝</h2>
+        <p id="cardDetail"></p>
+        <p id="cardMeta"></p>
+        <button id="cardBtn" type="button">繼續</button>
+      </section>
+    </div>
+  </main>
+  <script>
+    (function () {
+      "use strict";
+
+      var TIME_LIMIT = 30;
+      var MOVE_SECONDS = 15.2;
+      var MOVE_RATE = 100 / MOVE_SECONDS;
+      var GRACE = 0.62;
+      var RESUME_GRACE = 1.15;
+      var WARN_LEAD = 0.5;
+      var STORAGE_KEY = "reverse-traffic-v1";
+      var PHASES = [
+        { t: 0, signal: "green", rule: "normal", safe: true },
+        { t: 3.4, signal: "red", rule: "normal" },
+        { t: 5.6, signal: "green", rule: "normal" },
+        { t: 8.4, signal: "red", rule: "normal" },
+        { t: 10.4, signal: "red", rule: "reverse" },
+        { t: 13.6, signal: "green", rule: "reverse" },
+        { t: 15.6, signal: "red", rule: "reverse" },
+        { t: 18.8, signal: "green", rule: "reverse" },
+        { t: 20.8, signal: "green", rule: "normal" },
+        { t: 24.0, signal: "red", rule: "normal" },
+        { t: 26.6, signal: "green", rule: "normal" }
+      ];
+
+      var app = document.getElementById("app");
+      var timeValue = document.getElementById("timeValue");
+      var timer = document.getElementById("timer");
+      var bestLine = document.getElementById("bestLine");
+      var storageNote = document.getElementById("storageNote");
+      var ruleSign = document.getElementById("ruleSign");
+      var sealText = document.getElementById("sealText");
+      var ruleKicker = document.getElementById("ruleKicker");
+      var ruleMain = document.getElementById("ruleMain");
+      var lampRed = document.getElementById("lampRed");
+      var lampGreen = document.getElementById("lampGreen");
+      var nowKicker = document.getElementById("nowKicker");
+      var nowAction = document.getElementById("nowAction");
+      var banner = document.getElementById("banner");
+      var bannerText = document.getElementById("bannerText");
+      var graceTrack = document.getElementById("graceTrack");
+      var graceFill = document.getElementById("graceFill");
+      var meter = document.getElementById("meter");
+      var meterFill = document.getElementById("meterFill");
+      var progressText = document.getElementById("progressText");
+      var lane = document.getElementById("lane");
+      var dashes = document.getElementById("dashes");
+      var car = document.getElementById("car");
+      var pedal = document.getElementById("pedal");
+      var pedalSub = document.getElementById("pedalSub");
+      var pauseBtn = document.getElementById("pauseBtn");
+      var overlay = document.getElementById("overlay");
+      var card = document.getElementById("card");
+      var cardKicker = document.getElementById("cardKicker");
+      var cardTitle = document.getElementById("cardTitle");
+      var cardDetail = document.getElementById("cardDetail");
+      var cardMeta = document.getElementById("cardMeta");
+      var cardBtn = document.getElementById("cardBtn");
+
+      var debug = new URLSearchParams(location.search).has("debug");
+      var loopPaused = debug;
+      var mode = "playing";
+      var elapsed = 0;
+      var progress = 0;
+      var phaseIndex = 0;
+      var graceUntil = 0;
+      var resumeGraceLeft = 0;
+      var braking = false;
+      var spaceHeld = false;
+      var pointers = new Set();
+      var debugBrake = null;
+      var pausedReason = "";
+      var result = null;
+      var overlayOpen = false;
+      var dashOffset = 0;
+      var lastTs = performance.now();
+      var storageOk = true;
+      var best = { bestTimeMs: null, bestProgress: 0 };
+
+      function phaseAt(t) {
+        var index = 0;
+        for (var i = 0; i < PHASES.length; i++) {
+          if (t + 1e-9 >= PHASES[i].t) index = i;
+        }
+        return {
+          index: index,
+          phase: PHASES[index],
+          next: index + 1 < PHASES.length ? PHASES[index + 1] : null
+        };
+      }
+
+      function requiredOf(phase) {
+        var go = phase.rule === "normal" ? phase.signal === "green" : phase.signal === "red";
+        return go ? "go" : "stop";
+      }
+
+      function formatSeconds(seconds) {
+        return (Math.round(seconds * 10) / 10).toFixed(1);
+      }
+
+      function setText(el, text) {
+        if (el.textContent !== text) el.textContent = text;
+      }
+
+      function loadBest() {
+        var raw = null;
+        try {
+          raw = localStorage.getItem(STORAGE_KEY);
+        } catch (err) {
+          storageOk = false;
+          return;
+        }
+        if (!raw) return;
+        try {
+          var data = JSON.parse(raw);
+          if (!data || typeof data !== "object") return;
+          if (typeof data.bestTimeMs === "number" && data.bestTimeMs > 0 && data.bestTimeMs < 120000) {
+            best.bestTimeMs = data.bestTimeMs;
+          }
+          if (typeof data.bestProgress === "number" && data.bestProgress > 0 && data.bestProgress <= 100) {
+            best.bestProgress = data.bestProgress;
+          }
+        } catch (err) {
+          return;
+        }
+      }
+
+      function saveBest() {
+        if (!storageOk) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(best));
+        } catch (err) {
+          storageOk = false;
+        }
+      }
+
+      function bestLabel() {
+        if (best.bestTimeMs != null) return "最佳 " + formatSeconds(best.bestTimeMs / 1000) + " 秒";
+        if (best.bestProgress > 0) return "最佳進度 " + Math.floor(best.bestProgress) + "%";
+        return "尚無紀錄";
+      }
+
+      function rememberProgress() {
+        var value = Math.round(progress * 10) / 10;
+        if (value > (best.bestProgress || 0)) best.bestProgress = value;
+        saveBest();
+      }
+
+      function syncBraking() {
+        if (mode !== "playing") {
+          braking = false;
+          return;
+        }
+        if (debugBrake !== null) {
+          braking = debugBrake;
+          return;
+        }
+        braking = spaceHeld || pointers.size > 0;
+      }
+
+      function releaseInputs() {
+        spaceHeld = false;
+        pointers.clear();
+        debugBrake = null;
+        syncBraking();
+      }
+
+      function failMove(phase) {
+        mode = "lost";
+        var detail = "燈號不符合目前規則，你還在前進。";
+        if (phase.rule === "normal" && phase.signal === "red") {
+          detail = "正常規則：紅燈要停，你還在前進。";
+        } else if (phase.rule === "reverse" && phase.signal === "green") {
+          detail = "反轉規則：綠燈要停，你還在前進。";
+        }
+        result = {
+          kind: "move",
+          kicker: "出局",
+          title: "這時必須停止",
+          detail: detail,
+          meta: "進度 " + Math.floor(progress) + "%"
+        };
+        releaseInputs();
+        rememberProgress();
+      }
+
+      function failTime() {
+        mode = "lost";
+        var detail = progress < 15
+          ? "一直按住煞車會停住。30 秒內要走到終點。"
+          : "30 秒到了，還沒走到終點。";
+        result = {
+          kind: "time",
+          kicker: "時間到",
+          title: "還沒抵達終點",
+          detail: detail,
+          meta: "進度 " + Math.floor(progress) + "%"
+        };
+        releaseInputs();
+        rememberProgress();
+      }
+
+      function win() {
+        mode = "won";
+        progress = 100;
+        var ms = Math.round(elapsed * 1000);
+        var prev = best.bestTimeMs;
+        var improved = prev == null || ms < prev;
+        if (improved) best.bestTimeMs = ms;
+        best.bestProgress = 100;
+        saveBest();
+        result = {
+          kind: "win",
+          kicker: "抵達終點",
+          title: formatSeconds(elapsed) + " 秒",
+          detail: improved ? "更新最佳紀錄。" : "最佳仍是 " + formatSeconds(prev / 1000) + " 秒。",
+          meta: "這一局在時限內走到終點。"
+        };
+        releaseInputs();
+      }
+
+      function stepOnce(dt) {
+        if (mode !== "playing") return;
+        elapsed += dt;
+        var info = phaseAt(elapsed);
+        if (info.index !== phaseIndex) {
+          phaseIndex = info.index;
+          graceUntil = info.phase.t + GRACE;
+        }
+        var wasResume = resumeGraceLeft > 0;
+        if (resumeGraceLeft > 0) resumeGraceLeft = Math.max(0, resumeGraceLeft - dt);
+        var req = requiredOf(info.phase);
+        var protectedTime = !!info.phase.safe || elapsed < graceUntil || wasResume;
+        var moving = !braking && !wasResume;
+        if (!protectedTime && req === "stop" && moving) {
+          failMove(info.phase);
+          return;
+        }
+        if (moving) {
+          progress += MOVE_RATE * dt;
+          dashOffset = (dashOffset + 80 * dt) % 22;
+          if (progress >= 100) {
+            progress = 100;
+            win();
+            return;
+          }
+        }
+        if (elapsed >= TIME_LIMIT && progress < 100) failTime();
+      }
+
+      function update(dt) {
+        if (!Number.isFinite(dt) || dt <= 0) return;
+        var left = dt;
+        while (left > 0 && mode === "playing") {
+          var step = Math.min(0.05, left);
+          stepOnce(step);
+          left -= step;
+        }
+      }
+
+      function warningText() {
+        if (resumeGraceLeft > 0 || (phaseIndex > 0 && elapsed < graceUntil)) return "反應時間";
+        var info = phaseAt(elapsed);
+        if (!info.next) return "";
+        var remain = info.next.t - elapsed;
+        if (remain <= 0 || remain > WARN_LEAD) return "";
+        var nowReq = requiredOf(info.phase);
+        var nextReq = requiredOf(info.next);
+        var ruleFlips = info.next.rule !== info.phase.rule;
+        if (ruleFlips && nextReq === "go" && nowReq === "stop") return "即將反轉，先保持煞車";
+        if (ruleFlips && nextReq === "stop") return "即將反轉，準備停下";
+        if (nextReq === "stop" && nowReq === "go") return "即將要停";
+        if (nextReq === "go" && nowReq === "stop") return "即將可走，先保持煞車";
+        return "即將換燈";
+      }
+
+      function graceRatio() {
+        if (resumeGraceLeft > 0) return resumeGraceLeft / RESUME_GRACE;
+        if (phaseIndex > 0 && elapsed < graceUntil) return Math.max(0, (graceUntil - elapsed) / GRACE);
+        return 0;
+      }
+
+      function movingNow() {
+        return mode === "playing" && !braking && resumeGraceLeft <= 0;
+      }
+
+      function render() {
+        var info = phaseAt(elapsed);
+        var phase = info.phase;
+        var req = requiredOf(phase);
+        var warn = mode === "playing" ? warningText() : "";
+        var ratio = mode === "playing" ? graceRatio() : 0;
+        var moving = movingNow();
+        var remain = Math.max(0, TIME_LIMIT - elapsed);
+
+        app.dataset.mode = mode;
+        app.dataset.signal = phase.signal;
+        app.dataset.rule = phase.rule;
+        app.dataset.required = req;
+
+        setText(timeValue, formatSeconds(remain));
+        timer.classList.toggle("is-low", mode === "playing" && remain <= 5);
+        setText(bestLine, bestLabel());
+        storageNote.hidden = storageOk;
+
+        var reverse = phase.rule === "reverse";
+        ruleSign.classList.toggle("is-reverse", reverse);
+        setText(sealText, reverse ? "反" : "正");
+        setText(ruleKicker, reverse ? "反轉規則" : "正常規則");
+        setText(ruleMain, reverse ? "紅燈前進 · 綠燈停止" : "綠燈前進 · 紅燈停止");
+
+        lampRed.classList.toggle("is-on", phase.signal === "red");
+        lampGreen.classList.toggle("is-on", phase.signal === "green");
+        setText(nowKicker, phase.signal === "red" ? "紅燈" : "綠燈");
+        setText(nowAction, req === "stop" ? "現在要停止" : "現在要前進");
+
+        setText(bannerText, warn);
+        banner.classList.toggle("is-warn", warn !== "" && warn !== "反應時間");
+        banner.classList.toggle("is-grace", warn === "反應時間");
+        graceTrack.hidden = ratio <= 0;
+        graceFill.style.transform = "scaleX(" + ratio.toFixed(4) + ")";
+
+        var shown = Math.floor(progress);
+        setText(progressText, "進度 " + shown + "%");
+        meterFill.style.width = Math.max(0, Math.min(100, progress)) + "%";
+        meter.setAttribute("aria-valuenow", String(shown));
+
+        var laneH = lane.clientHeight;
+        var travel = Math.max(0, laneH - 34 - 36);
+        car.style.bottom = (8 + (progress / 100) * travel) + "px";
+        dashes.style.backgroundPositionY = dashOffset.toFixed(2) + "px";
+        car.classList.toggle("is-moving", moving);
+        car.classList.toggle("is-braking", braking);
+        pedal.classList.toggle("is-held", braking);
+        setText(pedalSub, braking ? "煞車中" : moving ? "前進中" : "放開前進");
+        pauseBtn.hidden = mode !== "playing";
+
+        var cardModel = null;
+        if (mode === "paused") {
+          cardModel = req === "stop"
+            ? { kind: "pause", kicker: "已暫停", title: "現在要停止", detail: "時間不會流逝。按繼續後請按住煞車。", meta: "", btn: "繼續" }
+            : { kind: "pause", kicker: "已暫停", title: "現在要前進", detail: "時間不會流逝。按繼續後放開就會走。", meta: "", btn: "繼續" };
+        } else if (result) {
+          cardModel = {
+            kind: result.kind === "win" ? "win" : "lose",
+            kicker: result.kicker,
+            title: result.title,
+            detail: result.detail,
+            meta: result.meta,
+            btn: "再來一局"
+          };
+        }
+
+        if (cardModel) {
+          card.dataset.kind = cardModel.kind;
+          setText(cardKicker, cardModel.kicker);
+          setText(cardTitle, cardModel.title);
+          setText(cardDetail, cardModel.detail);
+          setText(cardMeta, cardModel.meta);
+          cardMeta.hidden = cardModel.meta === "";
+          setText(cardBtn, cardModel.btn);
+          if (!overlayOpen) {
+            overlay.hidden = false;
+            overlayOpen = true;
+            queueMicrotask(function () {
+              try { cardBtn.focus({ preventScroll: true }); } catch (err) { cardBtn.focus(); }
+            });
+          }
+        } else if (overlayOpen) {
+          overlay.hidden = true;
+          overlayOpen = false;
+        }
+      }
+
+      function enterPause(reason) {
+        if (mode === "won" || mode === "lost") return;
+        if (mode !== "paused") {
+          mode = "paused";
+          pausedReason = reason || "manual";
+        }
+        releaseInputs();
+        render();
+      }
+
+      function resume() {
+        if (mode !== "paused") return;
+        mode = "playing";
+        pausedReason = "";
+        resumeGraceLeft = RESUME_GRACE;
+        releaseInputs();
+        lastTs = performance.now();
+        render();
+      }
+
+      function restart() {
+        elapsed = 0;
+        progress = 0;
+        phaseIndex = 0;
+        graceUntil = 0;
+        resumeGraceLeft = 0;
+        result = null;
+        pausedReason = "";
+        dashOffset = 0;
+        mode = "playing";
+        releaseInputs();
+        lastTs = performance.now();
+        if (document.hidden) enterPause("hidden");
+        else render();
+      }
+
+      function onPointerDown(event) {
+        if (mode !== "playing") return;
+        if (event.target.closest("[data-no-brake]")) return;
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        event.preventDefault();
+        pointers.add(event.pointerId);
+        try { app.setPointerCapture(event.pointerId); } catch (err) {}
+        syncBraking();
+        render();
+      }
+
+      app.addEventListener("pointerdown", onPointerDown, { passive: false });
+      window.addEventListener("pointerup", function (event) {
+        pointers.delete(event.pointerId);
+        syncBraking();
+        render();
+      });
+      window.addEventListener("pointercancel", function () {
+        pointers.clear();
+        syncBraking();
+        render();
+      });
+      app.addEventListener("lostpointercapture", function (event) {
+        pointers.delete(event.pointerId);
+        syncBraking();
+        render();
+      });
+      window.addEventListener("touchend", function (event) {
+        if (event.touches.length === 0) {
+          pointers.clear();
+          syncBraking();
+          render();
+        }
+      }, { passive: true });
+      window.addEventListener("touchcancel", function () {
+        pointers.clear();
+        syncBraking();
+        render();
+      }, { passive: true });
+      window.addEventListener("contextmenu", function (event) { event.preventDefault(); });
+
+      window.addEventListener("keydown", function (event) {
+        if (event.code === "Escape") {
+          event.preventDefault();
+          if (mode === "playing") enterPause("manual");
+          return;
+        }
+        if (event.code !== "Space" && event.code !== "Enter") return;
+        event.preventDefault();
+        if (event.repeat) return;
+        if (mode === "won" || mode === "lost") {
+          restart();
+          return;
+        }
+        if (mode === "paused") {
+          resume();
+          return;
+        }
+        if (event.code === "Space") {
+          spaceHeld = true;
+          syncBraking();
+          render();
+        }
+      });
+      window.addEventListener("keyup", function (event) {
+        if (event.code !== "Space") return;
+        spaceHeld = false;
+        syncBraking();
+        render();
+      });
+
+      pauseBtn.addEventListener("click", function () {
+        if (mode === "playing") enterPause("manual");
+      });
+      cardBtn.addEventListener("click", function () {
+        if (mode === "paused") resume();
+        else if (mode === "won" || mode === "lost") restart();
+      });
+
+      var blurArmed = document.hasFocus();
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+          releaseInputs();
+          if (mode === "playing") enterPause("hidden");
+          else render();
+        }
+      });
+      window.addEventListener("focus", function () {
+        blurArmed = true;
+        lastTs = performance.now();
+      });
+      window.addEventListener("blur", function () {
+        releaseInputs();
+        if (!blurArmed) return;
+        if (mode === "playing") enterPause("blur");
+        else render();
+      });
+      window.addEventListener("pageshow", function () { lastTs = performance.now(); });
+      window.addEventListener("resize", function () { render(); });
+
+      function frame(now) {
+        var dt = Math.min(0.05, Math.max(0, (now - lastTs) / 1000));
+        lastTs = now;
+        if (!loopPaused) update(dt);
+        render();
+        requestAnimationFrame(frame);
+      }
+
+      loadBest();
+      if (document.hidden) enterPause("hidden");
+      else render();
+      requestAnimationFrame(frame);
+
+      if (debug) {
+        window.__rt = {
+          pauseLoop: function (on) { loopPaused = !!on; },
+          advance: function (ms) { update(ms / 1000); render(); },
+          setBraking: function (on) {
+            debugBrake = on === null ? null : !!on;
+            syncBraking();
+            render();
+          },
+          pause: function () { if (mode === "playing") enterPause("manual"); },
+          resume: function () { resume(); },
+          restart: function () { restart(); },
+          state: function () {
+            var info = phaseAt(elapsed);
+            var phase = info.phase;
+            return {
+              mode: mode,
+              elapsed: elapsed,
+              remaining: Math.max(0, TIME_LIMIT - elapsed),
+              progress: progress,
+              signal: phase.signal,
+              rule: phase.rule,
+              required: requiredOf(phase),
+              safe: !!phase.safe,
+              braking: braking,
+              moving: movingNow(),
+              warning: mode === "playing" ? warningText() : "",
+              protected: !!phase.safe || elapsed < graceUntil || resumeGraceLeft > 0,
+              graceLeft: Math.max(0, graceUntil - elapsed),
+              resumeGraceLeft: resumeGraceLeft,
+              phaseAge: elapsed - phase.t,
+              phaseIndex: info.index,
+              pausedReason: pausedReason,
+              result: result,
+              bestTimeMs: best.bestTimeMs,
+              bestProgress: best.bestProgress,
+              storageOk: storageOk,
+              overlay: !overlay.hidden,
+              ruleText: ruleMain.textContent,
+              nowText: nowAction.textContent,
+              bannerText: bannerText.textContent,
+              cardTitle: cardTitle.textContent,
+              cardDetail: cardDetail.textContent,
+              cardKicker: cardKicker.textContent,
+              cardBtn: cardBtn.textContent,
+              pedalSub: pedalSub.textContent,
+              bestText: bestLine.textContent,
+              storageText: storageNote.hidden ? "" : storageNote.textContent
+            };
+          }
+        };
+      }
+    })();
+  </script>
+</body>
+</html>
