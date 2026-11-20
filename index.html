@@ -113,28 +113,79 @@
     #storageNote { color: var(--amber); font-size: 12px; line-height: 1.4; }
 
     #signal { display: flex; align-items: center; gap: 10px; min-height: 96px; }
-    #mapper {
-      flex: 1;
-      min-width: 0;
-      height: 104px;
-      background: var(--sign);
-      color: var(--sign-ink);
-      border: 3px solid var(--sign-ink);
-      border-radius: 16px;
-      box-shadow: 4px 4px 0 var(--shadow);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      padding: 4px 8px 4px 4px;
+    #ruleWrap { position: relative; flex: 1; min-width: 0; height: 108px; }
+    #ruleCard { height: 100%; perspective: 900px; }
+    .rule-inner {
+      position: relative;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.45s ease;
     }
-    #mapper svg { width: 100%; height: 92px; display: block; }
-    #mapper line, #mapper polyline { stroke: #171b1f; stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    #mapLabel {
-      writing-mode: horizontal-tb;
-      font-size: 13px;
+    #ruleCard.is-reverse .rule-inner { transform: rotateY(180deg); }
+    .rule-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 16px;
+      border: 3px solid var(--sign-ink);
+      background: var(--sign);
+      box-shadow: 4px 4px 0 var(--shadow);
+      backface-visibility: hidden;
+      font-size: 22px;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      line-height: 1.25;
+      text-align: center;
+    }
+    .rule-normal { color: #0e6b3c; }
+    .rule-reverse { color: #9d1f2c; transform: rotateY(180deg); }
+    .mini { width: 18px; height: 18px; flex: none; }
+    #rulePreview {
+      position: absolute;
+      left: 8px;
+      bottom: 6px;
       margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #6a5010;
+      z-index: 2;
+    }
+    #lockCard {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      padding: 8px 12px;
+      border-radius: 16px;
+      background: #2a2114;
+      color: #f6d98a;
+      border: 3px solid #e6a817;
+      box-shadow: 0 0 0 3px #4a3410;
+    }
+    #lockCard p { margin: 0; }
+    #lockTitle { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .warn-ico { width: 18px; height: 18px; flex: none; }
+    #lockHold { font-size: 20px; font-weight: 700; }
+    #lockCount { font-size: 13px; font-variant-numeric: tabular-nums; }
+    #finger { width: 22px; height: 28px; border: 3px solid #f6d98a; border-radius: 12px 12px 8px 8px; }
+    #finger.is-held { background: #f6d98a; }
+    #signal.is-locked .housing,
+    #signal.is-locked #ruleCard,
+    #signal.is-locked #rulePreview { opacity: 0.28; }
+    @media (prefers-reduced-motion: reduce) {
+      .rule-inner, .rule-reverse, #ruleCard.is-reverse .rule-inner { transform: none; transition: opacity 0.2s linear; }
+      .rule-face { backface-visibility: visible; transition: opacity 0.2s linear; }
+      .rule-reverse { opacity: 0; }
+      .rule-normal { opacity: 1; }
+      #ruleCard.is-reverse .rule-normal { opacity: 0; }
+      #ruleCard.is-reverse .rule-reverse { opacity: 1; }
     }
     .visually-hidden {
       position: absolute;
@@ -469,8 +520,8 @@
       }
     }
     @media (max-height: 740px) {
-      #mapper { height: 88px; }
-      #mapper svg { height: 76px; }
+      #ruleWrap { height: 96px; }
+      .rule-face { font-size: 18px; }
       #pedal { min-height: 96px; }
       .pedal-title { font-size: 22px; }
       .lamp { height: 32px; }
@@ -513,30 +564,28 @@
           </svg>
         </div>
       </div>
-      <div id="mapper">
-        <svg viewBox="0 0 200 92" role="img" aria-labelledby="mapLabel">
-          <g fill="#171b1f">
-            <polygon points="22,6 34,6 46,18 46,34 34,46 22,46 10,34 10,18"></polygon>
-            <rect x="18" y="22" width="16" height="6" fill="#f3efe4"></rect>
-            <polygon points="28,58 46,86 10,86"></polygon>
-            <polygon id="outStop" points="166,6 178,6 190,18 190,34 178,46 166,46 154,34 154,18"></polygon>
-            <rect x="162" y="22" width="16" height="6" fill="#f3efe4"></rect>
-            <polygon id="outGo" points="172,58 190,86 154,86"></polygon>
-          </g>
-          <g id="arrowsStraight">
-            <line x1="52" y1="26" x2="146" y2="26"></line>
-            <polyline points="136,18 150,26 136,34"></polyline>
-            <line x1="52" y1="72" x2="146" y2="72"></line>
-            <polyline points="136,64 150,72 136,80"></polyline>
-          </g>
-          <g id="arrowsCross" hidden>
-            <line x1="52" y1="26" x2="146" y2="72"></line>
-            <polyline points="136,64 150,72 136,80"></polyline>
-            <line x1="52" y1="72" x2="146" y2="26"></line>
-            <polyline points="136,18 150,26 136,34"></polyline>
-          </g>
-        </svg>
-        <p id="mapLabel">正常</p>
+      <div id="ruleWrap">
+        <div id="ruleCard">
+          <div class="rule-inner">
+            <div class="rule-face rule-normal" id="faceNormal">
+              <svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,6 58,56 6,56" fill="#0e6b3c"></polygon></svg>
+              <span>正常：綠行、紅停</span>
+              <svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><polygon points="20,2 44,2 62,20 62,44 44,62 20,62 2,44 2,20" fill="#9d1f2c"></polygon></svg>
+            </div>
+            <div class="rule-face rule-reverse" id="faceReverse">
+              <svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><polygon points="20,2 44,2 62,20 62,44 44,62 20,62 2,44 2,20" fill="#9d1f2c"></polygon></svg>
+              <span>反轉：紅行、綠停</span>
+              <svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,6 58,56 6,56" fill="#0e6b3c"></polygon></svg>
+            </div>
+          </div>
+        </div>
+        <p id="rulePreview" hidden>即將反轉</p>
+        <div id="lockCard" hidden>
+          <p id="lockTitle"><svg class="warn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 L22.5 21 H1.5 Z" fill="#e6a817"></path><rect x="11" y="9" width="2" height="6" fill="#2a2114"></rect><rect x="11" y="16.2" width="2" height="2" fill="#2a2114"></rect></svg>鎖定：保持剛才動作</p>
+          <div id="finger" aria-hidden="true"></div>
+          <p id="lockHold">保持放開</p>
+          <p id="lockCount">0.0 秒</p>
+        </div>
       </div>
       <p id="lampName" class="visually-hidden">綠燈</p>
     </section>
@@ -558,17 +607,6 @@
         <div class="finish"><span>終點</span></div>
         <div id="laneBadge" aria-hidden="true"><span></span></div>
         <div id="dashes"></div>
-        <div id="lockMark" hidden>
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
-            <circle id="lockRing" cx="50" cy="50" r="44"></circle>
-          </svg>
-          <div>
-            <div class="shackle"></div>
-            <div class="lock-body"></div>
-          </div>
-          <p id="lockLabel">鎖定</p>
-        </div>
         <div id="car" aria-hidden="true">
           <div class="nose"></div>
           <div class="lights"><i></i><i></i></div>
@@ -641,10 +679,13 @@
       var lampYellow = document.getElementById("lampYellow");
       var lampGreen = document.getElementById("lampGreen");
       var lampName = document.getElementById("lampName");
-      var arrowsStraight = document.getElementById("arrowsStraight");
-      var arrowsCross = document.getElementById("arrowsCross");
-      var mapLabel = document.getElementById("mapLabel");
-      var laneBadge = document.getElementById("laneBadge");
+      var signal = document.getElementById("signal");
+      var ruleCard = document.getElementById("ruleCard");
+      var rulePreview = document.getElementById("rulePreview");
+      var lockCard = document.getElementById("lockCard");
+      var finger = document.getElementById("finger");
+      var lockHold = document.getElementById("lockHold");
+      var lockCount = document.getElementById("lockCount");
       var banner = document.getElementById("banner");
       var bannerText = document.getElementById("bannerText");
       var graceTrack = document.getElementById("graceTrack");
@@ -655,9 +696,6 @@
       var lane = document.getElementById("lane");
       var dashes = document.getElementById("dashes");
       var car = document.getElementById("car");
-      var lockMark = document.getElementById("lockMark");
-      var lockRing = document.getElementById("lockRing");
-      var lockLabel = document.getElementById("lockLabel");
       var pedal = document.getElementById("pedal");
       var pedalSub = document.getElementById("pedalSub");
       var pauseBtn = document.getElementById("pauseBtn");
@@ -952,16 +990,11 @@
         setText(bestLine, bestLabel());
         storageNote.hidden = storageOk;
 
-        var previewRule = phase.signal === "yellow" && info.next ? info.next.rule : phase.rule;
-        var reverse = previewRule === "reverse";
+        var reverse = phase.rule === "reverse";
         var upcoming = phase.signal === "yellow" && info.next && info.next.rule !== phase.rule;
-        arrowsStraight.style.display = reverse ? "none" : "inline";
-        arrowsCross.style.display = reverse ? "inline" : "none";
-        if (reverse) arrowsStraight.setAttribute("hidden", "");
-        else arrowsStraight.removeAttribute("hidden");
-        if (reverse) arrowsCross.removeAttribute("hidden");
-        else arrowsCross.setAttribute("hidden", "");
-        setText(mapLabel, upcoming ? "即將" : (reverse ? "反轉" : "正常"));
+        ruleCard.classList.toggle("is-reverse", reverse);
+        rulePreview.hidden = !upcoming;
+        if (upcoming) setText(rulePreview, info.next.rule === "reverse" ? "即將反轉" : "即將恢復");
         lane.dataset.rule = reverse ? "reverse" : "normal";
         app.dataset.ruleShown = reverse ? "reverse" : "normal";
 
@@ -991,31 +1024,21 @@
         dashes.style.backgroundPositionY = dashOffset.toFixed(2) + "px";
         var lkNow = mode === "playing" || mode === "paused" ? lockAt(elapsed) : null;
         var lockActive = !!(lkNow && lkNow.phase === "active");
-        var justUnlocked = false;
-        if (!lockActive) {
-          for (var ui = 0; ui < LOCKS.length; ui++) {
-            var age = elapsed - LOCKS[ui].end;
-            if (age >= 0 && age < 0.4) justUnlocked = true;
-          }
-        }
-        lockMark.hidden = !(lockActive || (lkNow && lkNow.phase === "warn") || justUnlocked);
-        lockMark.classList.toggle("is-warn", !!(lkNow && lkNow.phase === "warn"));
-        lockMark.classList.toggle("is-lock", lockActive);
-        lockMark.classList.toggle("is-unlock", justUnlocked);
+        signal.classList.toggle("is-locked", lockActive);
+        lockCard.hidden = !lockActive;
         if (lockActive && lkNow) {
-          var span = lkNow.lock.end - lkNow.lock.start;
-          var left = Math.max(0, lkNow.lock.end - elapsed) / span;
-          var circ = 2 * Math.PI * 44;
-          lockRing.style.strokeDasharray = String(circ);
-          lockRing.style.strokeDashoffset = String(circ * (1 - left));
-          setText(lockLabel, "鎖定");
-        } else if (lkNow && lkNow.phase === "warn") {
-          var circWarn = 2 * Math.PI * 44;
-          lockRing.style.strokeDasharray = String(circWarn);
-          lockRing.style.strokeDashoffset = "0";
-          setText(lockLabel, "即將鎖定");
-        } else if (justUnlocked) {
-          setText(lockLabel, "開鎖");
+          var leftSec = Math.max(0, lkNow.lock.end - elapsed);
+          setText(lockCount, formatSeconds(leftSec) + " 秒");
+          if (lockSnap === null) {
+            finger.classList.remove("is-held");
+            setText(lockHold, "保持剛才動作");
+          } else if (lockSnap) {
+            finger.classList.add("is-held");
+            setText(lockHold, "保持按住");
+          } else {
+            finger.classList.remove("is-held");
+            setText(lockHold, "保持放開");
+          }
         }
 
         car.classList.toggle("is-moving", moving);
@@ -1272,9 +1295,14 @@
               bestProgress: best.bestProgress,
               storageOk: storageOk,
               overlay: !overlay.hidden,
-              mapLabel: mapLabel.textContent,
+              ruleText: ruleCard.classList.contains("is-reverse") ? "反轉：紅行、綠停" : "正常：綠行、紅停",
+              ruleReversed: ruleCard.classList.contains("is-reverse"),
+              previewText: rulePreview.hidden ? "" : rulePreview.textContent,
               lampName: lampName.textContent,
-              arrowsCrossed: arrowsCross.style.display !== "none",
+              lockShown: !lockCard.hidden,
+              lockHold: lockHold.textContent,
+              lockCount: lockCount.textContent,
+              dimmed: signal.classList.contains("is-locked"),
               lock: lockAt(elapsed) ? lockAt(elapsed).phase : "none",
               lockSnap: lockSnap,
               lockIndex: seenLock,

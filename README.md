@@ -2,7 +2,7 @@
 
 Silent portrait mini-game. A block drives itself toward the finish. Hold to brake, release to move. The light switches between red and green, and the rule flips between “green means go” and “red means go”.
 
-One round is 30 seconds. Straight arrows mean the red lamp stops you and the green lamp lets you move. Crossed arrows swap that. Yellow is a half-second preview of the next arrow mode, and either action is allowed while it is on. A lock near the car freezes whatever your hand is already doing until the ring runs out; changing that action is an out. The clock keeps running. Coming back from a pause gives a short grace to match the lock or the lights again.
+One round is 30 seconds. The card says 正常：綠行、紅停, or flips to 反轉：紅行、綠停 when the rule actually changes. Yellow is a half-second preview and may say a change is coming; either action is allowed while it is on. A lock covers the card and keeps the hand position you already had until the countdown ends. The clock keeps running. Coming back from a pause gives a short grace to match the lock or the lights again.
 
 ## Controls
 
