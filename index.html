@@ -33,6 +33,7 @@
       --sign-ink: #171b1f;
       --red: #e23b3b;
       --green: #1f9d55;
+      --yellow: #e6a817;
       --amber: #f0b429;
       --shadow: #070809;
       color-scheme: dark;
@@ -141,27 +142,27 @@
 
     #signal { display: flex; align-items: center; gap: 14px; min-height: 92px; }
     .housing {
-      width: 74px;
+      width: 70px;
       flex: none;
-      padding: 8px;
+      padding: 7px;
       border-radius: 18px;
       background: #0c1014;
       border: 2px solid var(--line);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .lamp {
-      height: 52px;
-      border-radius: 12px;
+      height: 40px;
+      border-radius: 10px;
       display: grid;
       place-items: center;
       background: #1a2128;
-      transition: background-color 140ms linear;
     }
     .lamp.is-on.is-red { background: var(--red); }
+    .lamp.is-on.is-yellow { background: var(--yellow); }
     .lamp.is-on.is-green { background: var(--green); }
-    .shape { width: 30px; height: 30px; color: #f7f4ee; }
+    .shape { width: 24px; height: 24px; color: #f7f4ee; }
     .lamp:not(.is-on) .shape { opacity: 0.38; }
     .now { min-width: 0; }
     #nowKicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
@@ -174,10 +175,12 @@
       font-weight: 700;
       letter-spacing: 0.02em;
     }
-    #banner.is-warn #bannerText { color: #f6d98a; }
+    #banner.is-yellow #bannerText { color: #f6d98a; }
     #banner.is-grace #bannerText { color: #d7efe0; }
     #graceTrack { height: 6px; border-radius: 99px; background: #243028; overflow: hidden; }
     #graceFill { display: block; height: 100%; width: 100%; background: #d7efe0; transform-origin: left center; }
+    #banner.is-yellow #graceTrack { background: #3a3014; }
+    #banner.is-yellow #graceFill { background: var(--yellow); }
 
     .meter-row { display: flex; align-items: center; gap: 10px; }
     .meter { flex: 1; height: 8px; border-radius: 99px; background: #0c1014; overflow: hidden; }
@@ -386,7 +389,8 @@
       #nowAction { font-size: 26px; }
       #pedal { min-height: 96px; }
       .pedal-title { font-size: 22px; }
-      .lamp { height: 44px; }
+      .lamp { height: 32px; }
+      .shape { width: 20px; height: 20px; }
     }
   </style>
 </head>
@@ -420,6 +424,11 @@
           <svg class="shape" viewBox="0 0 64 64">
             <polygon points="20,2 44,2 62,20 62,44 44,62 20,62 2,44 2,20" fill="currentColor"></polygon>
             <rect x="16" y="28" width="32" height="8" fill="#1a1e22"></rect>
+          </svg>
+        </div>
+        <div class="lamp is-yellow" id="lampYellow">
+          <svg class="shape" viewBox="0 0 64 64">
+            <polygon points="32,4 60,32 32,60 4,32" fill="currentColor"></polygon>
           </svg>
         </div>
         <div class="lamp is-green" id="lampGreen">
@@ -462,7 +471,7 @@
       </div>
     </div>
 
-    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
+    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。黃燈先看接下來。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
 
     <div id="overlay" hidden data-no-brake>
       <section class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle" data-kind="pause">
@@ -479,13 +488,12 @@
       "use strict";
 
       var TIME_LIMIT = 30;
-      var MOVE_SECONDS = 15.2;
+      var MOVE_SECONDS = 17.4;
       var MOVE_RATE = 100 / MOVE_SECONDS;
-      var GRACE = 0.62;
+      var YELLOW = 0.5;
       var RESUME_GRACE = 1.15;
-      var WARN_LEAD = 0.5;
       var STORAGE_KEY = "reverse-traffic-v1";
-      var PHASES = [
+      var LIGHTS = [
         { t: 0, signal: "green", rule: "normal", safe: true },
         { t: 3.4, signal: "red", rule: "normal" },
         { t: 5.6, signal: "green", rule: "normal" },
@@ -498,6 +506,17 @@
         { t: 24.0, signal: "red", rule: "normal" },
         { t: 26.6, signal: "green", rule: "normal" }
       ];
+      var PHASES = [];
+      for (var li = 0; li < LIGHTS.length; li++) {
+        if (li > 0) {
+          PHASES.push({
+            t: LIGHTS[li].t - YELLOW,
+            signal: "yellow",
+            rule: LIGHTS[li - 1].rule
+          });
+        }
+        PHASES.push(LIGHTS[li]);
+      }
 
       var app = document.getElementById("app");
       var timeValue = document.getElementById("timeValue");
@@ -509,6 +528,7 @@
       var ruleKicker = document.getElementById("ruleKicker");
       var ruleMain = document.getElementById("ruleMain");
       var lampRed = document.getElementById("lampRed");
+      var lampYellow = document.getElementById("lampYellow");
       var lampGreen = document.getElementById("lampGreen");
       var nowKicker = document.getElementById("nowKicker");
       var nowAction = document.getElementById("nowAction");
@@ -539,7 +559,6 @@
       var elapsed = 0;
       var progress = 0;
       var phaseIndex = 0;
-      var graceUntil = 0;
       var resumeGraceLeft = 0;
       var braking = false;
       var spaceHeld = false;
@@ -566,6 +585,7 @@
       }
 
       function requiredOf(phase) {
+        if (!phase || phase.signal === "yellow") return "either";
         var go = phase.rule === "normal" ? phase.signal === "green" : phase.signal === "red";
         return go ? "go" : "stop";
       }
@@ -699,14 +719,11 @@
         if (mode !== "playing") return;
         elapsed += dt;
         var info = phaseAt(elapsed);
-        if (info.index !== phaseIndex) {
-          phaseIndex = info.index;
-          graceUntil = info.phase.t + GRACE;
-        }
+        if (info.index !== phaseIndex) phaseIndex = info.index;
         var wasResume = resumeGraceLeft > 0;
         if (resumeGraceLeft > 0) resumeGraceLeft = Math.max(0, resumeGraceLeft - dt);
         var req = requiredOf(info.phase);
-        var protectedTime = !!info.phase.safe || elapsed < graceUntil || wasResume;
+        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume;
         var moving = !braking && !wasResume;
         if (!protectedTime && req === "stop" && moving) {
           failMove(info.phase);
@@ -735,24 +752,21 @@
       }
 
       function warningText() {
-        if (resumeGraceLeft > 0 || (phaseIndex > 0 && elapsed < graceUntil)) return "反應時間";
+        if (resumeGraceLeft > 0) return "反應時間";
         var info = phaseAt(elapsed);
-        if (!info.next) return "";
-        var remain = info.next.t - elapsed;
-        if (remain <= 0 || remain > WARN_LEAD) return "";
-        var nowReq = requiredOf(info.phase);
-        var nextReq = requiredOf(info.next);
-        var ruleFlips = info.next.rule !== info.phase.rule;
-        if (ruleFlips && nextReq === "go" && nowReq === "stop") return "即將反轉，先保持煞車";
-        if (ruleFlips && nextReq === "stop") return "即將反轉，準備停下";
-        if (nextReq === "stop" && nowReq === "go") return "即將要停";
-        if (nextReq === "go" && nowReq === "stop") return "即將可走，先保持煞車";
-        return "即將換燈";
+        if (info.phase.signal !== "yellow" || !info.next) return "";
+        if (info.next.rule !== info.phase.rule) {
+          return info.next.rule === "reverse" ? "規則即將反轉" : "規則即將恢復";
+        }
+        return "煞車或前進都可以";
       }
 
       function graceRatio() {
         if (resumeGraceLeft > 0) return resumeGraceLeft / RESUME_GRACE;
-        if (phaseIndex > 0 && elapsed < graceUntil) return Math.max(0, (graceUntil - elapsed) / GRACE);
+        var info = phaseAt(elapsed);
+        if (info.phase.signal === "yellow" && info.next) {
+          return Math.max(0, Math.min(1, (info.next.t - elapsed) / YELLOW));
+        }
         return 0;
       }
 
@@ -779,19 +793,28 @@
         setText(bestLine, bestLabel());
         storageNote.hidden = storageOk;
 
-        var reverse = phase.rule === "reverse";
+        var preview = phase.signal === "yellow" && info.next && info.next.rule !== phase.rule ? info.next : null;
+        var shownRule = preview || phase;
+        var reverse = shownRule.rule === "reverse";
         ruleSign.classList.toggle("is-reverse", reverse);
         setText(sealText, reverse ? "反" : "正");
-        setText(ruleKicker, reverse ? "反轉規則" : "正常規則");
+        setText(ruleKicker, preview ? (reverse ? "即將反轉" : "即將恢復") : (reverse ? "反轉規則" : "正常規則"));
         setText(ruleMain, reverse ? "紅燈前進 · 綠燈停止" : "綠燈前進 · 紅燈停止");
 
         lampRed.classList.toggle("is-on", phase.signal === "red");
+        lampYellow.classList.toggle("is-on", phase.signal === "yellow");
         lampGreen.classList.toggle("is-on", phase.signal === "green");
-        setText(nowKicker, phase.signal === "red" ? "紅燈" : "綠燈");
-        setText(nowAction, req === "stop" ? "現在要停止" : "現在要前進");
+        if (phase.signal === "yellow" && info.next) {
+          var nextReq = requiredOf(info.next);
+          setText(nowKicker, "黃燈");
+          setText(nowAction, nextReq === "stop" ? "接下來要停止" : "接下來要前進");
+        } else {
+          setText(nowKicker, phase.signal === "red" ? "紅燈" : "綠燈");
+          setText(nowAction, req === "stop" ? "現在要停止" : "現在要前進");
+        }
 
         setText(bannerText, warn);
-        banner.classList.toggle("is-warn", warn !== "" && warn !== "反應時間");
+        banner.classList.toggle("is-yellow", phase.signal === "yellow" && warn !== "反應時間");
         banner.classList.toggle("is-grace", warn === "反應時間");
         graceTrack.hidden = ratio <= 0;
         graceFill.style.transform = "scaleX(" + ratio.toFixed(4) + ")";
@@ -813,9 +836,21 @@
 
         var cardModel = null;
         if (mode === "paused") {
-          cardModel = req === "stop"
-            ? { kind: "pause", kicker: "已暫停", title: "現在要停止", detail: "時間不會流逝。按繼續後請按住煞車。", meta: "", btn: "繼續" }
-            : { kind: "pause", kicker: "已暫停", title: "現在要前進", detail: "時間不會流逝。按繼續後放開就會走。", meta: "", btn: "繼續" };
+          if (phase.signal === "yellow" && info.next) {
+            var pausedNext = requiredOf(info.next);
+            cardModel = {
+              kind: "pause",
+              kicker: "已暫停",
+              title: pausedNext === "stop" ? "接下來要停止" : "接下來要前進",
+              detail: "時間不會流逝。黃燈時煞車或前進都可以。",
+              meta: "",
+              btn: "繼續"
+            };
+          } else {
+            cardModel = req === "stop"
+              ? { kind: "pause", kicker: "已暫停", title: "現在要停止", detail: "時間不會流逝。按繼續後請按住煞車。", meta: "", btn: "繼續" }
+              : { kind: "pause", kicker: "已暫停", title: "現在要前進", detail: "時間不會流逝。按繼續後放開就會走。", meta: "", btn: "繼續" };
+          }
         } else if (result) {
           cardModel = {
             kind: result.kind === "win" ? "win" : "lose",
@@ -872,7 +907,6 @@
         elapsed = 0;
         progress = 0;
         phaseIndex = 0;
-        graceUntil = 0;
         resumeGraceLeft = 0;
         result = null;
         pausedReason = "";
@@ -1024,9 +1058,12 @@
               braking: braking,
               moving: movingNow(),
               warning: mode === "playing" ? warningText() : "",
-              protected: !!phase.safe || elapsed < graceUntil || resumeGraceLeft > 0,
-              graceLeft: Math.max(0, graceUntil - elapsed),
+              protected: !!phase.safe || phase.signal === "yellow" || resumeGraceLeft > 0,
+              graceLeft: resumeGraceLeft > 0 ? resumeGraceLeft : (phase.signal === "yellow" && info.next ? Math.max(0, info.next.t - elapsed) : 0),
               resumeGraceLeft: resumeGraceLeft,
+              nextRequired: info.next ? requiredOf(info.next) : null,
+              nextRule: info.next ? info.next.rule : null,
+              nextSignal: info.next ? info.next.signal : null,
               phaseAge: elapsed - phase.t,
               phaseIndex: info.index,
               pausedReason: pausedReason,
@@ -1036,6 +1073,7 @@
               storageOk: storageOk,
               overlay: !overlay.hidden,
               ruleText: ruleMain.textContent,
+              ruleKicker: ruleKicker.textContent,
               nowText: nowAction.textContent,
               bannerText: bannerText.textContent,
               cardTitle: cardTitle.textContent,
