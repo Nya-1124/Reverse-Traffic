@@ -112,35 +112,41 @@
     #bestLine { color: var(--muted); font-size: 13px; line-height: 1.3; min-height: 1.3em; }
     #storageNote { color: var(--amber); font-size: 12px; line-height: 1.4; }
 
-    #ruleSign {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    #signal { display: flex; align-items: center; gap: 10px; min-height: 96px; }
+    #mapper {
+      flex: 1;
+      min-width: 0;
+      height: 104px;
       background: var(--sign);
       color: var(--sign-ink);
       border: 3px solid var(--sign-ink);
       border-radius: 16px;
-      padding: 11px 14px;
       box-shadow: 4px 4px 0 var(--shadow);
-    }
-    #seal {
-      width: 44px;
-      height: 44px;
-      flex: none;
       display: grid;
-      place-items: center;
-      background: var(--sign-ink);
-      color: var(--sign);
-      font-weight: 700;
-      font-size: 18px;
-      border-radius: 50%;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 4px 8px 4px 4px;
     }
-    #ruleSign.is-reverse #seal { border-radius: 6px; transform: rotate(45deg); }
-    #ruleSign.is-reverse #seal span { transform: rotate(-45deg); display: block; }
-    #ruleKicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
-    #ruleMain { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: 0.01em; }
-
-    #signal { display: flex; align-items: center; gap: 14px; min-height: 92px; }
+    #mapper svg { width: 100%; height: 92px; display: block; }
+    #mapper line, #mapper polyline { stroke: #171b1f; stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    #mapLabel {
+      writing-mode: horizontal-tb;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin: 0;
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
     .housing {
       width: 70px;
       flex: none;
@@ -162,13 +168,10 @@
     .lamp.is-on.is-red { background: var(--red); }
     .lamp.is-on.is-yellow { background: var(--yellow); }
     .lamp.is-on.is-green { background: var(--green); }
+    .lamp.is-next { box-shadow: inset 0 0 0 3px #f4f1e6; }
     .shape { width: 24px; height: 24px; color: #f7f4ee; }
     .lamp:not(.is-on) .shape { opacity: 0.38; }
-    .now { min-width: 0; }
-    #nowKicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
-    #nowAction { font-size: 32px; font-weight: 700; line-height: 1.15; }
-
-    #banner { min-height: 34px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    #banner { min-height: 22px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
     #bannerText {
       min-height: 1.2em;
       font-size: 15px;
@@ -202,11 +205,92 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 3px;
+      width: 8px;
       background: #efe8d4;
     }
-    #lane::before { left: 10px; }
-    #lane::after { right: 10px; }
+    #lane::before { left: 8px; }
+    #lane::after { right: 8px; }
+    #lane[data-rule="reverse"]::before,
+    #lane[data-rule="reverse"]::after {
+      background: repeating-linear-gradient(
+        135deg,
+        #efe8d4 0 5px,
+        #1b2127 5px 10px
+      );
+    }
+    #laneBadge {
+      position: absolute;
+      top: 34px;
+      right: 22px;
+      width: 22px;
+      height: 22px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    #laneBadge span,
+    #laneBadge span::before {
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      top: 9px;
+      height: 3px;
+      background: #efe8d4;
+      border-radius: 2px;
+    }
+    #lane[data-rule="reverse"] #laneBadge span { transform: rotate(32deg); }
+    #lane[data-rule="reverse"] #laneBadge span::before { content: ""; transform: rotate(-64deg); }
+    #lockMark {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      width: 92px;
+      height: 92px;
+      margin-left: -46px;
+      z-index: 3;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+    }
+    #lockMark svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #lockRing, .ring-bg { fill: none; stroke-width: 6; }
+    .ring-bg { stroke: #2c353c; }
+    #lockRing {
+      stroke: #f4f1e6;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    .shackle {
+      width: 22px;
+      height: 14px;
+      border: 4px solid #f4f1e6;
+      border-bottom: 0;
+      border-radius: 12px 12px 0 0;
+      margin: 0 auto;
+    }
+    .lock-body {
+      width: 30px;
+      height: 22px;
+      margin: -2px auto 0;
+      background: #f4f1e6;
+      border-radius: 4px;
+    }
+    #lockLabel {
+      position: absolute;
+      bottom: -2px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+    #lockMark.is-warn { opacity: 0.9; }
+    #lockMark.is-warn #lockRing { stroke: var(--yellow); }
+    #lockMark.is-unlock .shackle { animation: unlock 0.35s ease forwards; }
+    @keyframes unlock {
+      to { transform: translate(4px, -7px) rotate(36deg); transform-origin: left bottom; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #lockMark.is-unlock .shackle { animation: none; }
+    }
     .finish {
       position: absolute;
       top: 0;
@@ -385,8 +469,8 @@
       }
     }
     @media (max-height: 740px) {
-      #ruleMain { font-size: 22px; }
-      #nowAction { font-size: 26px; }
+      #mapper { height: 88px; }
+      #mapper svg { height: 76px; }
       #pedal { min-height: 96px; }
       .pedal-title { font-size: 22px; }
       .lamp { height: 32px; }
@@ -410,14 +494,6 @@
     <p id="bestLine">尚無紀錄</p>
     <p id="storageNote" hidden>無法寫入裝置，成績只留在這次開啟。</p>
 
-    <section id="ruleSign" aria-live="polite">
-      <div id="seal" aria-hidden="true"><span id="sealText">正</span></div>
-      <div>
-        <p id="ruleKicker">正常規則</p>
-        <p id="ruleMain">綠燈前進 · 紅燈停止</p>
-      </div>
-    </section>
-
     <section id="signal">
       <div class="housing" aria-hidden="true">
         <div class="lamp is-red" id="lampRed">
@@ -437,10 +513,32 @@
           </svg>
         </div>
       </div>
-      <div class="now">
-        <p id="nowKicker">綠燈</p>
-        <p id="nowAction">現在要前進</p>
+      <div id="mapper">
+        <svg viewBox="0 0 200 92" role="img" aria-labelledby="mapLabel">
+          <g fill="#171b1f">
+            <polygon points="22,6 34,6 46,18 46,34 34,46 22,46 10,34 10,18"></polygon>
+            <rect x="18" y="22" width="16" height="6" fill="#f3efe4"></rect>
+            <polygon points="28,58 46,86 10,86"></polygon>
+            <polygon id="outStop" points="166,6 178,6 190,18 190,34 178,46 166,46 154,34 154,18"></polygon>
+            <rect x="162" y="22" width="16" height="6" fill="#f3efe4"></rect>
+            <polygon id="outGo" points="172,58 190,86 154,86"></polygon>
+          </g>
+          <g id="arrowsStraight">
+            <line x1="52" y1="26" x2="146" y2="26"></line>
+            <polyline points="136,18 150,26 136,34"></polyline>
+            <line x1="52" y1="72" x2="146" y2="72"></line>
+            <polyline points="136,64 150,72 136,80"></polyline>
+          </g>
+          <g id="arrowsCross" hidden>
+            <line x1="52" y1="26" x2="146" y2="72"></line>
+            <polyline points="136,64 150,72 136,80"></polyline>
+            <line x1="52" y1="72" x2="146" y2="26"></line>
+            <polyline points="136,18 150,26 136,34"></polyline>
+          </g>
+        </svg>
+        <p id="mapLabel">正常</p>
       </div>
+      <p id="lampName" class="visually-hidden">綠燈</p>
     </section>
 
     <div id="banner" role="status">
@@ -458,7 +556,19 @@
     <div id="hold">
       <div id="lane">
         <div class="finish"><span>終點</span></div>
+        <div id="laneBadge" aria-hidden="true"><span></span></div>
         <div id="dashes"></div>
+        <div id="lockMark" hidden>
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+            <circle id="lockRing" cx="50" cy="50" r="44"></circle>
+          </svg>
+          <div>
+            <div class="shackle"></div>
+            <div class="lock-body"></div>
+          </div>
+          <p id="lockLabel">鎖定</p>
+        </div>
         <div id="car" aria-hidden="true">
           <div class="nose"></div>
           <div class="lights"><i></i><i></i></div>
@@ -471,7 +581,7 @@
       </div>
     </div>
 
-    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。黃燈先看接下來。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
+    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
 
     <div id="overlay" hidden data-no-brake>
       <section class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle" data-kind="pause">
@@ -493,6 +603,10 @@
       var YELLOW = 0.5;
       var RESUME_GRACE = 1.15;
       var STORAGE_KEY = "reverse-traffic-v1";
+      var LOCKS = [
+        { warn: 2.7, start: 3.4, end: 5.1 },
+        { warn: 10.5, start: 11.2, end: 13.1 }
+      ];
       var LIGHTS = [
         { t: 0, signal: "green", rule: "normal", safe: true },
         { t: 3.4, signal: "red", rule: "normal" },
@@ -523,15 +637,14 @@
       var timer = document.getElementById("timer");
       var bestLine = document.getElementById("bestLine");
       var storageNote = document.getElementById("storageNote");
-      var ruleSign = document.getElementById("ruleSign");
-      var sealText = document.getElementById("sealText");
-      var ruleKicker = document.getElementById("ruleKicker");
-      var ruleMain = document.getElementById("ruleMain");
       var lampRed = document.getElementById("lampRed");
       var lampYellow = document.getElementById("lampYellow");
       var lampGreen = document.getElementById("lampGreen");
-      var nowKicker = document.getElementById("nowKicker");
-      var nowAction = document.getElementById("nowAction");
+      var lampName = document.getElementById("lampName");
+      var arrowsStraight = document.getElementById("arrowsStraight");
+      var arrowsCross = document.getElementById("arrowsCross");
+      var mapLabel = document.getElementById("mapLabel");
+      var laneBadge = document.getElementById("laneBadge");
       var banner = document.getElementById("banner");
       var bannerText = document.getElementById("bannerText");
       var graceTrack = document.getElementById("graceTrack");
@@ -542,6 +655,9 @@
       var lane = document.getElementById("lane");
       var dashes = document.getElementById("dashes");
       var car = document.getElementById("car");
+      var lockMark = document.getElementById("lockMark");
+      var lockRing = document.getElementById("lockRing");
+      var lockLabel = document.getElementById("lockLabel");
       var pedal = document.getElementById("pedal");
       var pedalSub = document.getElementById("pedalSub");
       var pauseBtn = document.getElementById("pauseBtn");
@@ -560,6 +676,9 @@
       var progress = 0;
       var phaseIndex = 0;
       var resumeGraceLeft = 0;
+      var lockSnap = null;
+      var seenLock = -1;
+      var inputArmedAt = 0;
       var braking = false;
       var spaceHeld = false;
       var pointers = new Set();
@@ -642,6 +761,10 @@
         saveBest();
       }
 
+      function inputsArmed() {
+        return performance.now() >= inputArmedAt;
+      }
+
       function syncBraking() {
         if (mode !== "playing") {
           braking = false;
@@ -651,7 +774,19 @@
           braking = debugBrake;
           return;
         }
+        if (!inputsArmed()) {
+          braking = false;
+          return;
+        }
         braking = spaceHeld || pointers.size > 0;
+      }
+
+      function lockAt(t) {
+        for (var i = 0; i < LOCKS.length; i++) {
+          if (t >= LOCKS[i].start && t < LOCKS[i].end) return { index: i, phase: "active", lock: LOCKS[i] };
+          if (t >= LOCKS[i].warn && t < LOCKS[i].start) return { index: i, phase: "warn", lock: LOCKS[i] };
+        }
+        return null;
       }
 
       function releaseInputs() {
@@ -659,6 +794,19 @@
         pointers.clear();
         debugBrake = null;
         syncBraking();
+      }
+
+      function failLock(held) {
+        mode = "lost";
+        result = {
+          kind: "lock",
+          kicker: "出局",
+          title: "鎖定時動作變了",
+          detail: held ? "鎖定時要維持按住，你放開了。" : "鎖定時要維持放開，你按住了。",
+          meta: "進度 " + Math.floor(progress) + "%"
+        };
+        releaseInputs();
+        rememberProgress();
       }
 
       function failMove(phase) {
@@ -722,8 +870,22 @@
         if (info.index !== phaseIndex) phaseIndex = info.index;
         var wasResume = resumeGraceLeft > 0;
         if (resumeGraceLeft > 0) resumeGraceLeft = Math.max(0, resumeGraceLeft - dt);
+        var lk = lockAt(elapsed);
+        var lockActive = !!(lk && lk.phase === "active");
+        if (!lockActive) {
+          seenLock = -1;
+          lockSnap = null;
+        } else if (seenLock !== lk.index) {
+          seenLock = lk.index;
+          lockSnap = null;
+        }
+        if (lockActive && !wasResume && lockSnap === null) lockSnap = braking;
+        if (lockActive && !wasResume && lockSnap !== null && braking !== lockSnap) {
+          failLock(lockSnap);
+          return;
+        }
         var req = requiredOf(info.phase);
-        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume;
+        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume || lockActive;
         var moving = !braking && !wasResume;
         if (!protectedTime && req === "stop" && moving) {
           failMove(info.phase);
@@ -753,12 +915,9 @@
 
       function warningText() {
         if (resumeGraceLeft > 0) return "反應時間";
-        var info = phaseAt(elapsed);
-        if (info.phase.signal !== "yellow" || !info.next) return "";
-        if (info.next.rule !== info.phase.rule) {
-          return info.next.rule === "reverse" ? "規則即將反轉" : "規則即將恢復";
-        }
-        return "煞車或前進都可以";
+        var lk = lockAt(elapsed);
+        if (lk && lk.phase === "warn") return "即將鎖定";
+        return "";
       }
 
       function graceRatio() {
@@ -793,25 +952,27 @@
         setText(bestLine, bestLabel());
         storageNote.hidden = storageOk;
 
-        var preview = phase.signal === "yellow" && info.next && info.next.rule !== phase.rule ? info.next : null;
-        var shownRule = preview || phase;
-        var reverse = shownRule.rule === "reverse";
-        ruleSign.classList.toggle("is-reverse", reverse);
-        setText(sealText, reverse ? "反" : "正");
-        setText(ruleKicker, preview ? (reverse ? "即將反轉" : "即將恢復") : (reverse ? "反轉規則" : "正常規則"));
-        setText(ruleMain, reverse ? "紅燈前進 · 綠燈停止" : "綠燈前進 · 紅燈停止");
+        var previewRule = phase.signal === "yellow" && info.next ? info.next.rule : phase.rule;
+        var reverse = previewRule === "reverse";
+        var upcoming = phase.signal === "yellow" && info.next && info.next.rule !== phase.rule;
+        arrowsStraight.style.display = reverse ? "none" : "inline";
+        arrowsCross.style.display = reverse ? "inline" : "none";
+        if (reverse) arrowsStraight.setAttribute("hidden", "");
+        else arrowsStraight.removeAttribute("hidden");
+        if (reverse) arrowsCross.removeAttribute("hidden");
+        else arrowsCross.setAttribute("hidden", "");
+        setText(mapLabel, upcoming ? "即將" : (reverse ? "反轉" : "正常"));
+        lane.dataset.rule = reverse ? "reverse" : "normal";
+        app.dataset.ruleShown = reverse ? "reverse" : "normal";
 
+        var nextSig = phase.signal === "yellow" && info.next ? info.next.signal : "";
         lampRed.classList.toggle("is-on", phase.signal === "red");
         lampYellow.classList.toggle("is-on", phase.signal === "yellow");
         lampGreen.classList.toggle("is-on", phase.signal === "green");
-        if (phase.signal === "yellow" && info.next) {
-          var nextReq = requiredOf(info.next);
-          setText(nowKicker, "黃燈");
-          setText(nowAction, nextReq === "stop" ? "接下來要停止" : "接下來要前進");
-        } else {
-          setText(nowKicker, phase.signal === "red" ? "紅燈" : "綠燈");
-          setText(nowAction, req === "stop" ? "現在要停止" : "現在要前進");
-        }
+        lampRed.classList.toggle("is-next", nextSig === "red");
+        lampYellow.classList.toggle("is-next", false);
+        lampGreen.classList.toggle("is-next", nextSig === "green");
+        setText(lampName, phase.signal === "red" ? "紅燈" : phase.signal === "yellow" ? "黃燈" : "綠燈");
 
         setText(bannerText, warn);
         banner.classList.toggle("is-yellow", phase.signal === "yellow" && warn !== "反應時間");
@@ -828,6 +989,35 @@
         var travel = Math.max(0, laneH - 34 - 36);
         car.style.bottom = (8 + (progress / 100) * travel) + "px";
         dashes.style.backgroundPositionY = dashOffset.toFixed(2) + "px";
+        var lkNow = mode === "playing" || mode === "paused" ? lockAt(elapsed) : null;
+        var lockActive = !!(lkNow && lkNow.phase === "active");
+        var justUnlocked = false;
+        if (!lockActive) {
+          for (var ui = 0; ui < LOCKS.length; ui++) {
+            var age = elapsed - LOCKS[ui].end;
+            if (age >= 0 && age < 0.4) justUnlocked = true;
+          }
+        }
+        lockMark.hidden = !(lockActive || (lkNow && lkNow.phase === "warn") || justUnlocked);
+        lockMark.classList.toggle("is-warn", !!(lkNow && lkNow.phase === "warn"));
+        lockMark.classList.toggle("is-lock", lockActive);
+        lockMark.classList.toggle("is-unlock", justUnlocked);
+        if (lockActive && lkNow) {
+          var span = lkNow.lock.end - lkNow.lock.start;
+          var left = Math.max(0, lkNow.lock.end - elapsed) / span;
+          var circ = 2 * Math.PI * 44;
+          lockRing.style.strokeDasharray = String(circ);
+          lockRing.style.strokeDashoffset = String(circ * (1 - left));
+          setText(lockLabel, "鎖定");
+        } else if (lkNow && lkNow.phase === "warn") {
+          var circWarn = 2 * Math.PI * 44;
+          lockRing.style.strokeDasharray = String(circWarn);
+          lockRing.style.strokeDashoffset = "0";
+          setText(lockLabel, "即將鎖定");
+        } else if (justUnlocked) {
+          setText(lockLabel, "開鎖");
+        }
+
         car.classList.toggle("is-moving", moving);
         car.classList.toggle("is-braking", braking);
         pedal.classList.toggle("is-held", braking);
@@ -836,20 +1026,25 @@
 
         var cardModel = null;
         if (mode === "paused") {
-          if (phase.signal === "yellow" && info.next) {
-            var pausedNext = requiredOf(info.next);
+          var pausedLock = lockAt(elapsed);
+          if (pausedLock && pausedLock.phase === "active" && lockSnap !== null) {
             cardModel = {
               kind: "pause",
               kicker: "已暫停",
-              title: pausedNext === "stop" ? "接下來要停止" : "接下來要前進",
-              detail: "時間不會流逝。黃燈時煞車或前進都可以。",
+              title: "鎖定中",
+              detail: lockSnap ? "時間不會流逝。繼續後請維持按住。" : "時間不會流逝。繼續後請維持放開。",
               meta: "",
               btn: "繼續"
             };
           } else {
-            cardModel = req === "stop"
-              ? { kind: "pause", kicker: "已暫停", title: "現在要停止", detail: "時間不會流逝。按繼續後請按住煞車。", meta: "", btn: "繼續" }
-              : { kind: "pause", kicker: "已暫停", title: "現在要前進", detail: "時間不會流逝。按繼續後放開就會走。", meta: "", btn: "繼續" };
+            cardModel = {
+              kind: "pause",
+              kicker: "已暫停",
+              title: "時間不會流逝",
+              detail: "繼續後有一小段反應時間。",
+              meta: "",
+              btn: "繼續"
+            };
           }
         } else if (result) {
           cardModel = {
@@ -899,6 +1094,7 @@
         pausedReason = "";
         resumeGraceLeft = RESUME_GRACE;
         releaseInputs();
+        inputArmedAt = performance.now() + 160;
         lastTs = performance.now();
         render();
       }
@@ -908,6 +1104,8 @@
         progress = 0;
         phaseIndex = 0;
         resumeGraceLeft = 0;
+        lockSnap = null;
+        seenLock = -1;
         result = null;
         pausedReason = "";
         dashOffset = 0;
@@ -920,6 +1118,7 @@
 
       function onPointerDown(event) {
         if (mode !== "playing") return;
+        if (!inputsArmed()) return;
         if (event.target.closest("[data-no-brake]")) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
         event.preventDefault();
@@ -937,8 +1136,8 @@
       });
       window.addEventListener("pointercancel", function () {
         pointers.clear();
-        syncBraking();
-        render();
+        if (mode === "playing") enterPause("cancel");
+        else { syncBraking(); render(); }
       });
       app.addEventListener("lostpointercapture", function (event) {
         pointers.delete(event.pointerId);
@@ -954,8 +1153,8 @@
       }, { passive: true });
       window.addEventListener("touchcancel", function () {
         pointers.clear();
-        syncBraking();
-        render();
+        if (mode === "playing") enterPause("cancel");
+        else { syncBraking(); render(); }
       }, { passive: true });
       window.addEventListener("contextmenu", function (event) { event.preventDefault(); });
 
@@ -976,6 +1175,7 @@
           resume();
           return;
         }
+        if (!inputsArmed()) return;
         if (event.code === "Space") {
           spaceHeld = true;
           syncBraking();
@@ -1072,9 +1272,12 @@
               bestProgress: best.bestProgress,
               storageOk: storageOk,
               overlay: !overlay.hidden,
-              ruleText: ruleMain.textContent,
-              ruleKicker: ruleKicker.textContent,
-              nowText: nowAction.textContent,
+              mapLabel: mapLabel.textContent,
+              lampName: lampName.textContent,
+              arrowsCrossed: arrowsCross.style.display !== "none",
+              lock: lockAt(elapsed) ? lockAt(elapsed).phase : "none",
+              lockSnap: lockSnap,
+              lockIndex: seenLock,
               bannerText: bannerText.textContent,
               cardTitle: cardTitle.textContent,
               cardDetail: cardDetail.textContent,

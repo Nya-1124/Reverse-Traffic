@@ -2,7 +2,7 @@
 
 Silent portrait mini-game. A block drives itself toward the finish. Hold to brake, release to move. The light switches between red and green, and the rule flips between “green means go” and “red means go”.
 
-One round is 30 seconds. Moving when the current rule says stop is an out. Braking the whole time never reaches the finish. Before each change the lamp turns yellow for half a second: braking or moving is allowed, the sign says what comes next (including a rule flip), and the clock keeps running. When the yellow ends, the new light is enforced immediately. Coming back from a pause still has its own short grace.
+One round is 30 seconds. Straight arrows mean the red lamp stops you and the green lamp lets you move. Crossed arrows swap that. Yellow is a half-second preview of the next arrow mode, and either action is allowed while it is on. A lock near the car freezes whatever your hand is already doing until the ring runs out; changing that action is an out. The clock keeps running. Coming back from a pause gives a short grace to match the lock or the lights again.
 
 ## Controls
 
