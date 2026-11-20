@@ -142,6 +142,11 @@
     }
     .rule-normal { color: #0e6b3c; }
     .rule-reverse { color: #9d1f2c; transform: rotateY(180deg); }
+    @media (max-width: 380px) {
+      .rule-face { font-size: 17px; gap: 4px; padding: 8px 6px; }
+      .housing { width: 58px; }
+      .lamp { height: 34px; }
+    }
     .mini { width: 18px; height: 18px; flex: none; }
     #rulePreview {
       margin: 4px 0 0;
@@ -192,9 +197,6 @@
     #finger.is-held { background: #ff2d2d; }
     #lockHold { font-size: 64px; font-weight: 700; line-height: 1; color: #ff2d2d; }
     #lockCount { font-size: 18px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
-    #signal.is-locked .housing,
-    #signal.is-locked #ruleCard,
-    #signal.is-locked #rulePreview { opacity: 0.28; }
     @media (prefers-reduced-motion: reduce) {
       .rule-inner, .rule-reverse, #ruleCard.is-reverse .rule-inner { transform: none; transition: opacity 0.2s linear; }
       .rule-face { backface-visibility: visible; transition: opacity 0.2s linear; }
@@ -467,11 +469,12 @@
     .pedal-sub { font-size: 14px; color: #d5dbe0; min-height: 1.2em; }
 
     #hint {
-      color: var(--muted);
+      color: #d7dee4;
       font-size: 13px;
       line-height: 1.45;
       text-align: center;
     }
+    #app[data-mode="teaching"] #hint { display: none; }
     #app[data-mode="won"] #hint,
     #app[data-mode="lost"] #hint,
     #app[data-mode="paused"] #hint { visibility: hidden; }
@@ -524,20 +527,40 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 4px;
+      gap: 0;
       padding: 28px 18px;
-      background: rgba(16, 20, 24, 0.96);
+      background: #f4f0e6;
+      color: #171b1f;
+      color-scheme: light;
     }
-    #menu h2 { font-size: 28px; font-weight: 700; margin: 0 0 8px; }
-    #menu .lvl-best { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
+    #menu h2 { font-size: 28px; font-weight: 700; margin: 0 0 12px; color: #171b1f; }
+    #menu button {
+      background: #fffdf8;
+      color: #171b1f;
+      border: 2px solid #171b1f;
+      box-shadow: 3px 3px 0 #171b1f;
+    }
+    #menu .lvl-best { margin: 4px 0 12px; color: #3a342c; font-size: 14px; font-weight: 700; }
+    #replayBtn, #teachMenu {
+      width: 100%;
+      height: 48px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 2px solid #171b1f;
+      background: #fffdf8;
+      color: #171b1f;
+      font-size: 17px;
+      font-weight: 700;
+    }
     #teachBar {
-      background: var(--sign);
-      color: var(--sign-ink);
+      flex: none;
+      background: #fffdf8;
+      color: #171b1f;
       border-radius: 14px;
       padding: 10px 12px;
-      border: 3px solid var(--sign-ink);
+      border: 3px solid #171b1f;
     }
-    #teachText { font-size: 16px; font-weight: 700; line-height: 1.4; }
+    #teachText { font-size: 18px; font-weight: 700; line-height: 1.35; color: #171b1f; }
 
     @media (min-width: 860px) {
       body {
@@ -688,6 +711,7 @@
         <p id="cardDetail"></p>
         <p id="cardMeta"></p>
         <button id="cardBtn" type="button">繼續</button>
+        <button id="replayBtn" type="button" hidden>重看教學</button>
         <button id="menuBtn" type="button">選關</button>
       </section>
     </div>
@@ -727,53 +751,57 @@
           ]
         },
         lock: {
-          name: "鎖定", yellow: 0.55, react: 0.35, move: 12.6, locks: [
-            { warn: 9.5, start: 12.5, end: 14.65 },
-            { warn: 16.8, start: 19.8, end: 21.05 }
+          name: "鎖定", yellow: 0.55, react: 0.35, move: 12.4, locks: [
+            { warn: 6.6, start: 9.6, end: 12.35 },
+            { warn: 15.3, start: 18.3, end: 21.35 }
           ],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
-            { t: 4.8, signal: "red", rule: "normal" },
-            { t: 8.0, signal: "green", rule: "normal" },
-            { t: 15.2, signal: "red", rule: "normal" },
-            { t: 21.6, signal: "green", rule: "normal" },
-            { t: 25.2, signal: "red", rule: "normal" },
-            { t: 28.2, signal: "green", rule: "normal" }
+            { t: 3.0, signal: "red", rule: "normal" },
+            { t: 5.8, signal: "green", rule: "normal" },
+            { t: 10.7, signal: "red", rule: "normal" },
+            { t: 12.9, signal: "green", rule: "normal" },
+            { t: 14.4, signal: "red", rule: "normal" },
+            { t: 19.4, signal: "green", rule: "normal" },
+            { t: 21.9, signal: "red", rule: "normal" },
+            { t: 23.7, signal: "green", rule: "normal" }
           ]
         },
         mix: {
-          name: "混合挑戰", yellow: 0.5, react: 0.35, move: 13.6, locks: [
-            { warn: 12.2, start: 15.2, end: 16.7 },
-            { warn: 18.6, start: 21.6, end: 22.9 }
+          name: "混合挑戰", yellow: 0.5, react: 0.35, move: 14.2, locks: [
+            { warn: 6.7, start: 9.7, end: 12.5 },
+            { warn: 15.9, start: 18.9, end: 22.1 }
           ],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
-            { t: 4.0, signal: "red", rule: "normal" },
-            { t: 7.4, signal: "green", rule: "normal" },
-            { t: 10.6, signal: "red", rule: "reverse" },
-            { t: 17.2, signal: "green", rule: "reverse" },
-            { t: 23.4, signal: "green", rule: "normal" },
-            { t: 26.8, signal: "red", rule: "normal" }
+            { t: 2.4, signal: "red", rule: "normal" },
+            { t: 4.2, signal: "green", rule: "normal" },
+            { t: 5.8, signal: "red", rule: "reverse" },
+            { t: 10.8, signal: "green", rule: "reverse" },
+            { t: 13.0, signal: "red", rule: "reverse" },
+            { t: 15.0, signal: "green", rule: "reverse" },
+            { t: 20.0, signal: "red", rule: "reverse" },
+            { t: 22.6, signal: "green", rule: "normal" }
           ]
         }
       };
       var TEACH = {
         normal: [
-          { kind: "release", signal: "green", rule: "normal", text: "放開手指，讓方塊往前走。" },
-          { kind: "brake", signal: "red", rule: "normal", text: "紅燈。按住煞車，方塊會停。" }
+          { kind: "release", signal: "green", rule: "normal", text: "放開，方塊往前走。" },
+          { kind: "brake", signal: "red", rule: "normal", text: "按住，方塊會停。" }
         ],
         reverse: [
-          { kind: "brake", signal: "red", rule: "normal", text: "正常：紅燈要停。按住煞車。" },
-          { kind: "brake", signal: "green", rule: "reverse", text: "反轉了：綠燈要停。再按住。" }
+          { kind: "release", signal: "green", rule: "normal", text: "正常：放開，方塊往前走。" },
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" }
         ],
         lock: [
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。倒數完會寫唔準按。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。倒數完會寫唔準放手。" }
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈會變，仍唔準按。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈會變，仍唔準放手。" }
         ],
         mix: [
-          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。按住。" },
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。倒數完鎖定，唔準按。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。倒數完鎖定，唔準放手。" }
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" },
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈會變，仍唔準按。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈會變，仍唔準放手。" }
         ]
       };
       var YELLOW = 0.5;
@@ -819,6 +847,7 @@
       var cardDetail = document.getElementById("cardDetail");
       var cardMeta = document.getElementById("cardMeta");
       var cardBtn = document.getElementById("cardBtn");
+      var replayBtn = document.getElementById("replayBtn");
       var menuBtn = document.getElementById("menuBtn");
       var menu = document.getElementById("menu");
       var teachBar = document.getElementById("teachBar");
@@ -1078,6 +1107,11 @@
         var lk = lockAt(elapsed);
         var lockActive = !!(lk && lk.phase === "active");
         if (!lockActive) {
+          for (var li = 0; li < LOCKS.length; li++) {
+            if (elapsed - dt < LOCKS[li].end && elapsed >= LOCKS[li].end) {
+              graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, 0.45));
+            }
+          }
           seenLock = -1;
           lockSnap = null;
         } else if (!wasResume && seenLock !== lk.index) {
@@ -1115,16 +1149,20 @@
       function teachTick(dt) {
         var step = teachStep();
         if (!step || teach.ready) return;
+        if (!braking) {
+          var rate = step.kind === "release" ? 120 : step.kind === "lock" ? 15 : 90;
+          var cap = step.kind === "lock" ? 58 : 88;
+          progress = Math.min(cap, progress + rate * dt);
+          dashOffset = (dashOffset + 260 * dt) % 22;
+        }
         if (step.kind === "release") {
-          if (!braking) {
-            progress = Math.min(28, progress + 18 * dt);
-            teach.acc += dt;
-          } else teach.acc = 0;
-          if (teach.acc > 0.35 && progress > 2) finishTeachStep();
+          if (!braking) teach.acc += dt;
+          else teach.acc = 0;
+          if (teach.acc > 0.65 && progress > 55) finishTeachStep();
         } else if (step.kind === "brake") {
           if (braking) teach.acc += dt;
           else teach.acc = 0;
-          if (teach.acc > 0.3) finishTeachStep();
+          if (teach.acc > 0.35) finishTeachStep();
         } else if (step.kind === "lock") {
           var wanted = !!step.force;
           if (teach.phase === "choose") {
@@ -1148,7 +1186,7 @@
             }
           } else if (braking === teach.captured) {
             teach.acc += dt;
-            if (teach.acc > 0.4) finishTeachStep();
+            if (teach.acc > 1.7) finishTeachStep();
           } else {
             teach.acc = 0;
           }
@@ -1164,6 +1202,9 @@
           teach.ready = false;
           teach.lastBrake = braking;
           startBtn.hidden = true;
+          var nextStep = teachStep();
+          var holdPose = nextStep.kind === "brake" || (nextStep.kind === "lock" && nextStep.force);
+          progress = holdPose ? 46 : 8;
         } else {
           teach.ready = true;
           startBtn.hidden = false;
@@ -1215,6 +1256,7 @@
       }
 
       function movingNow() {
+        if (mode === "teaching") return !braking;
         return mode === "playing" && !braking && resumeGraceLeft <= 0;
       }
 
@@ -1224,7 +1266,12 @@
         var teaching = mode === "teaching" || (mode === "paused" && pausedFrom === "teaching");
         if (teaching) {
           var step = teachStep();
-          phase = { signal: step.signal, rule: step.rule, safe: true };
+          var teachSignal = step.signal;
+          if (step.kind === "lock" && teach.phase === "keep") {
+            if (teach.acc >= 1.05) teachSignal = step.signal === "green" ? "red" : "green";
+            else if (teach.acc >= 0.55) teachSignal = "yellow";
+          }
+          phase = { signal: teachSignal, rule: step.rule, safe: true };
           info = { phase: phase, next: null, index: 0 };
         }
         var req = requiredOf(phase);
@@ -1288,7 +1335,6 @@
         var counting = !!(lkNow && lkNow.phase === "warn");
         var teachCount = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "count";
         var teachKeep = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "keep";
-        signal.classList.toggle("is-locked", lockActive || teachKeep);
         preLock.hidden = !(counting || teachCount);
         lockCard.hidden = !(lockActive || teachKeep);
         if (counting) setText(preNum, String(Math.max(1, Math.ceil(lkNow.lock.start - elapsed - 1e-6))));
@@ -1353,6 +1399,7 @@
           setText(cardMeta, cardModel.meta);
           cardMeta.hidden = cardModel.meta === "";
           setText(cardBtn, cardModel.btn);
+          replayBtn.hidden = !(mode === "won" || mode === "lost");
           if (!overlayOpen) {
             overlay.hidden = false;
             overlayOpen = true;
@@ -1363,6 +1410,7 @@
         } else if (overlayOpen) {
           overlay.hidden = true;
           overlayOpen = false;
+          replayBtn.hidden = true;
         }
       }
 
@@ -1387,6 +1435,7 @@
         seenLock = -1;
         result = null;
         teach = { step: 0, acc: 0, ready: false, phase: "choose", captured: null, countLeft: 3, lastBrake: false };
+        progress = 8;
         startBtn.hidden = true;
         releaseInputs();
         inputArmedAt = performance.now() + 180;
@@ -1394,8 +1443,7 @@
         render();
       }
 
-      function beginChallenge() {
-        if (mode !== "teaching" || !teach.ready) return;
+      function freshChallenge() {
         applyLevel(levelId);
         mode = "playing";
         pausedFrom = "playing";
@@ -1410,9 +1458,14 @@
         teach.ready = false;
         startBtn.hidden = true;
         releaseInputs();
-        inputArmedAt = performance.now() + 220;
+        inputArmedAt = performance.now() + 240;
         lastTs = performance.now();
         render();
+      }
+
+      function beginChallenge() {
+        if (mode !== "teaching" || !teach.ready) return;
+        freshChallenge();
       }
 
       function enterPause(reason) {
@@ -1438,7 +1491,7 @@
       }
 
       function restart() {
-        if (levelId) beginTeach(levelId);
+        if (levelId && LEVELS[levelId]) freshChallenge();
         else showMenu();
       }
 
@@ -1520,8 +1573,9 @@
       });
       cardBtn.addEventListener("click", function () {
         if (mode === "paused") resume();
-        else if (mode === "won" || mode === "lost") beginTeach(levelId);
+        else if (mode === "won" || mode === "lost") freshChallenge();
       });
+      replayBtn.addEventListener("click", function () { beginTeach(levelId); });
       menuBtn.addEventListener("click", function () { showMenu(); });
       startBtn.addEventListener("click", function () { beginChallenge(); });
       document.getElementById("teachMenu").addEventListener("click", function () { showMenu(); });
@@ -1621,7 +1675,7 @@
               lockShown: !lockCard.hidden,
               lockHold: lockHold.textContent,
               lockCount: lockCount.textContent,
-              dimmed: signal.classList.contains("is-locked"),
+              dimmed: getComputedStyle(document.querySelector("#signal .housing")).opacity !== "1",
               lock: lockAt(elapsed) ? lockAt(elapsed).phase : "none",
               lockSnap: lockSnap,
               lockIndex: seenLock,
