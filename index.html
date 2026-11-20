@@ -75,6 +75,9 @@
       touch-action: none;
     }
 
+    header, #bestLine, #storageNote, #signal, #banner, .meter-row, #hint, #pedal, #teachBar {
+      flex-shrink: 0;
+    }
     header {
       display: flex;
       justify-content: space-between;
@@ -158,13 +161,15 @@
     #preLock, #lockCard {
       position: absolute;
       left: 50%;
-      top: 42%;
-      width: min(88%, 320px);
+      top: 50%;
+      width: min(92%, 320px);
+      max-height: calc(100% - 8px);
       transform: translate(-50%, -50%);
-      z-index: 5;
+      z-index: 4;
       pointer-events: none;
       margin: 0;
       text-align: center;
+      box-sizing: border-box;
     }
     #preLock {
       display: flex;
@@ -259,11 +264,12 @@
     #meterFill { display: block; height: 100%; width: 0; background: var(--sign); }
     #progressText { flex: none; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
 
-    #hold { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+    #hold { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
     #lane {
       position: relative;
-      flex: 1;
-      min-height: 128px;
+      container-type: size;
+      flex: 1 1 auto;
+      min-height: 72px;
       border-radius: 18px;
       background: #1b2127;
       border: 2px solid var(--line);
@@ -580,13 +586,37 @@
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
       }
     }
-    @media (max-height: 740px) {
-      #ruleWrap { height: 96px; }
-      .rule-face { font-size: 18px; }
+    @media (max-height: 760px) {
+      #app { gap: 6px; padding-top: calc(8px + env(safe-area-inset-top)); padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+      h1 { font-size: 18px; }
+      #signal { min-height: 0; gap: 8px; }
+      #ruleWrap { height: 78px; }
+      .rule-face { font-size: 16px; padding: 6px 8px; }
+      .housing { padding: 4px; gap: 4px; }
+      .lamp { height: 26px; }
+      .shape { width: 16px; height: 16px; }
+      #banner { min-height: 0; }
+      #bannerText { min-height: 0; font-size: 13px; }
+      #hold { gap: 6px; }
       #pedal { min-height: 96px; }
       .pedal-title { font-size: 22px; }
-      .lamp { height: 32px; }
-      .shape { width: 20px; height: 20px; }
+      #teachBar { padding: 8px 10px; }
+      #teachText { font-size: 16px; }
+      #replayBtn, #teachMenu, #startBtn { height: 44px; margin-top: 6px; }
+      #preNum { font-size: 52px; }
+      #lockHold { font-size: 34px; }
+      #finger { width: 22px; height: 26px; }
+      #preLock, #lockCard { padding: 6px 8px; }
+      .card { padding: 12px 14px 12px; }
+      #cardTitle { font-size: 26px; }
+      #cardBtn, #menuBtn, #startBtn, #menu button { height: 44px; margin-top: 8px; }
+    }
+    @container (max-height: 260px) {
+      #preNum { font-size: 44px; }
+      #lockHold { font-size: 28px; }
+      #lockCount { font-size: 14px; }
+      #finger { width: 18px; height: 22px; margin-bottom: 0; }
+      #preLock, #lockCard { padding: 4px 8px; gap: 2px; }
     }
   </style>
 </head>
@@ -666,6 +696,15 @@
           <div class="nose"></div>
           <div class="lights"><i></i><i></i></div>
         </div>
+        <div id="preLock" hidden>
+          <p>即將鎖定</p>
+          <p id="preNum">3</p>
+        </div>
+        <div id="lockCard" hidden>
+          <div id="finger" aria-hidden="true"></div>
+          <p id="lockHold">唔準按</p>
+          <p id="lockCount">0.0 秒</p>
+        </div>
       </div>
       <div id="pedal" aria-live="polite">
         <div class="brake-lamp"></div>
@@ -692,16 +731,6 @@
       <p class="lvl-best" id="bestLock">尚無紀錄</p>
       <button type="button" data-level="mix">混合挑戰</button>
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
-    </div>
-
-    <div id="preLock" hidden>
-      <p>即將鎖定</p>
-      <p id="preNum">3</p>
-    </div>
-    <div id="lockCard" hidden>
-      <div id="finger" aria-hidden="true"></div>
-      <p id="lockHold">唔準按</p>
-      <p id="lockCount">0.0 秒</p>
     </div>
 
     <div id="overlay" hidden data-no-brake>
