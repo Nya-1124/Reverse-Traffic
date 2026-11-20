@@ -119,7 +119,7 @@
       position: relative;
       height: 100%;
       transform-style: preserve-3d;
-      transition: transform 0.45s ease;
+      transition: transform 0.32s ease;
     }
     #ruleCard.is-reverse .rule-inner { transform: rotateY(180deg); }
     .rule-face {
@@ -144,38 +144,54 @@
     .rule-reverse { color: #9d1f2c; transform: rotateY(180deg); }
     .mini { width: 18px; height: 18px; flex: none; }
     #rulePreview {
-      position: absolute;
-      left: 8px;
-      bottom: 6px;
-      margin: 0;
-      font-size: 12px;
+      margin: 4px 0 0;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.06em;
-      color: #6a5010;
-      z-index: 2;
+      color: #f6d98a;
     }
-    #lockCard {
+    #preLock, #lockCard {
       position: absolute;
-      inset: 0;
-      z-index: 4;
+      left: 50%;
+      top: 42%;
+      width: min(88%, 320px);
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+      margin: 0;
+      text-align: center;
+    }
+    #preLock {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 2px;
-      padding: 8px 12px;
-      border-radius: 16px;
-      background: #2a2114;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(16, 18, 22, 0.9);
+      color: #f6d98a;
+      border: 3px solid #e6a817;
+      box-shadow: 0 0 0 3px #4a3410;
+    }
+    #preNum { font-size: 84px; line-height: 0.9; font-weight: 700; color: #ff2d2d; }
+    #lockCard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 12px;
+      border-radius: 18px;
+      background: rgba(16, 18, 22, 0.9);
       color: #f6d98a;
       border: 3px solid #e6a817;
       box-shadow: 0 0 0 3px #4a3410;
     }
     #lockCard p { margin: 0; }
-    #lockTitle { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; line-height: 1.3; }
-    .warn-ico { width: 18px; height: 18px; flex: none; }
-    #lockHold { font-size: 20px; font-weight: 700; }
-    #lockCount { font-size: 13px; font-variant-numeric: tabular-nums; }
-    #finger { width: 22px; height: 28px; border: 3px solid #f6d98a; border-radius: 12px 12px 8px 8px; }
-    #finger.is-held { background: #f6d98a; }
+    #lockTitle { display: none; }
+    #finger { width: 28px; height: 36px; border: 3px solid #ff2d2d; border-radius: 14px 14px 8px 8px; margin: 0 auto 4px; }
+    #finger.is-held { background: #ff2d2d; }
+    #lockHold { font-size: 64px; font-weight: 700; line-height: 1; color: #ff2d2d; }
+    #lockCount { font-size: 18px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
     #signal.is-locked .housing,
     #signal.is-locked #ruleCard,
     #signal.is-locked #rulePreview { opacity: 0.28; }
@@ -489,10 +505,10 @@
     #cardTitle { font-size: 32px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
     #cardDetail, #cardMeta { margin-top: 8px; font-size: 16px; line-height: 1.45; }
     #cardMeta { font-weight: 700; }
-    #cardBtn {
+    #cardBtn, #menuBtn, #startBtn, #menu button {
       width: 100%;
-      height: 54px;
-      margin-top: 14px;
+      height: 52px;
+      margin-top: 10px;
       border: 0;
       border-radius: 12px;
       background: var(--sign-ink);
@@ -500,6 +516,28 @@
       font-size: 18px;
       font-weight: 700;
     }
+    #menuBtn { background: transparent; color: var(--sign-ink); border: 2px solid var(--sign-ink); }
+    #menu {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      padding: 28px 18px;
+      background: rgba(16, 20, 24, 0.96);
+    }
+    #menu h2 { font-size: 28px; font-weight: 700; margin: 0 0 8px; }
+    #menu .lvl-best { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
+    #teachBar {
+      background: var(--sign);
+      color: var(--sign-ink);
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 3px solid var(--sign-ink);
+    }
+    #teachText { font-size: 16px; font-weight: 700; line-height: 1.4; }
 
     @media (min-width: 860px) {
       body {
@@ -538,7 +576,7 @@
         <h1>反方向紅綠燈</h1>
       </div>
       <div class="hud-right">
-        <p class="timer" id="timer"><small>剩餘</small><span id="timeValue">30.0</span><span class="sec">秒</span></p>
+        <p class="timer" id="timer"><small id="timeCaption">剩餘</small><span id="timeValue">30.0</span><span class="sec">秒</span></p>
         <button id="pauseBtn" type="button" data-no-brake>暫停</button>
       </div>
     </header>
@@ -580,12 +618,6 @@
           </div>
         </div>
         <p id="rulePreview" hidden>即將反轉</p>
-        <div id="lockCard" hidden>
-          <p id="lockTitle"><svg class="warn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 L22.5 21 H1.5 Z" fill="#e6a817"></path><rect x="11" y="9" width="2" height="6" fill="#2a2114"></rect><rect x="11" y="16.2" width="2" height="2" fill="#2a2114"></rect></svg>鎖定：保持剛才動作</p>
-          <div id="finger" aria-hidden="true"></div>
-          <p id="lockHold">保持放開</p>
-          <p id="lockCount">0.0 秒</p>
-        </div>
       </div>
       <p id="lampName" class="visually-hidden">綠燈</p>
     </section>
@@ -621,6 +653,34 @@
 
     <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
 
+    <div id="teachBar" hidden data-no-brake>
+      <p id="teachText">先練習這個關卡。</p>
+      <button id="startBtn" type="button" hidden>開始挑戰</button>
+      <button id="teachMenu" type="button">選關</button>
+    </div>
+
+    <div id="menu" data-no-brake>
+      <h2>選擇關卡</h2>
+      <button type="button" data-level="normal">正常燈</button>
+      <p class="lvl-best" id="bestNormal">尚無紀錄</p>
+      <button type="button" data-level="reverse">反轉</button>
+      <p class="lvl-best" id="bestReverse">尚無紀錄</p>
+      <button type="button" data-level="lock">鎖定</button>
+      <p class="lvl-best" id="bestLock">尚無紀錄</p>
+      <button type="button" data-level="mix">混合挑戰</button>
+      <p class="lvl-best" id="bestMix">尚無紀錄</p>
+    </div>
+
+    <div id="preLock" hidden>
+      <p>即將鎖定</p>
+      <p id="preNum">3</p>
+    </div>
+    <div id="lockCard" hidden>
+      <div id="finger" aria-hidden="true"></div>
+      <p id="lockHold">唔準按</p>
+      <p id="lockCount">0.0 秒</p>
+    </div>
+
     <div id="overlay" hidden data-no-brake>
       <section class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle" data-kind="pause">
         <p class="card-kicker" id="cardKicker">已暫停</p>
@@ -628,6 +688,7 @@
         <p id="cardDetail"></p>
         <p id="cardMeta"></p>
         <button id="cardBtn" type="button">繼續</button>
+        <button id="menuBtn" type="button">選關</button>
       </section>
     </div>
   </main>
@@ -636,39 +697,91 @@
       "use strict";
 
       var TIME_LIMIT = 30;
-      var MOVE_SECONDS = 17.4;
-      var MOVE_RATE = 100 / MOVE_SECONDS;
-      var YELLOW = 0.5;
       var RESUME_GRACE = 1.15;
+      var LOCK_ONSET = 0.3;
       var STORAGE_KEY = "reverse-traffic-v1";
-      var LOCKS = [
-        { warn: 2.7, start: 3.4, end: 5.1 },
-        { warn: 10.5, start: 11.2, end: 13.1 }
-      ];
-      var LIGHTS = [
-        { t: 0, signal: "green", rule: "normal", safe: true },
-        { t: 3.4, signal: "red", rule: "normal" },
-        { t: 5.6, signal: "green", rule: "normal" },
-        { t: 8.4, signal: "red", rule: "normal" },
-        { t: 10.4, signal: "red", rule: "reverse" },
-        { t: 13.6, signal: "green", rule: "reverse" },
-        { t: 15.6, signal: "red", rule: "reverse" },
-        { t: 18.8, signal: "green", rule: "reverse" },
-        { t: 20.8, signal: "green", rule: "normal" },
-        { t: 24.0, signal: "red", rule: "normal" },
-        { t: 26.6, signal: "green", rule: "normal" }
-      ];
-      var PHASES = [];
-      for (var li = 0; li < LIGHTS.length; li++) {
-        if (li > 0) {
-          PHASES.push({
-            t: LIGHTS[li].t - YELLOW,
-            signal: "yellow",
-            rule: LIGHTS[li - 1].rule
-          });
+      var LEVELS = {
+        normal: {
+          name: "正常燈", yellow: 0.8, react: 0.5, move: 13.2, locks: [],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 5.2, signal: "red", rule: "normal" },
+            { t: 9.2, signal: "green", rule: "normal" },
+            { t: 13.4, signal: "red", rule: "normal" },
+            { t: 17.6, signal: "green", rule: "normal" },
+            { t: 21.8, signal: "red", rule: "normal" },
+            { t: 25.6, signal: "green", rule: "normal" }
+          ]
+        },
+        reverse: {
+          name: "反轉", yellow: 0.55, react: 0.35, move: 14.9, locks: [],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4.4, signal: "red", rule: "normal" },
+            { t: 8.2, signal: "green", rule: "normal" },
+            { t: 12.0, signal: "red", rule: "reverse" },
+            { t: 16.2, signal: "green", rule: "reverse" },
+            { t: 20.2, signal: "red", rule: "reverse" },
+            { t: 24.2, signal: "green", rule: "reverse" },
+            { t: 27.8, signal: "red", rule: "reverse" }
+          ]
+        },
+        lock: {
+          name: "鎖定", yellow: 0.55, react: 0.35, move: 12.6, locks: [
+            { warn: 9.5, start: 12.5, end: 14.65 },
+            { warn: 16.8, start: 19.8, end: 21.05 }
+          ],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4.8, signal: "red", rule: "normal" },
+            { t: 8.0, signal: "green", rule: "normal" },
+            { t: 15.2, signal: "red", rule: "normal" },
+            { t: 21.6, signal: "green", rule: "normal" },
+            { t: 25.2, signal: "red", rule: "normal" },
+            { t: 28.2, signal: "green", rule: "normal" }
+          ]
+        },
+        mix: {
+          name: "混合挑戰", yellow: 0.5, react: 0.35, move: 13.6, locks: [
+            { warn: 12.2, start: 15.2, end: 16.7 },
+            { warn: 18.6, start: 21.6, end: 22.9 }
+          ],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4.0, signal: "red", rule: "normal" },
+            { t: 7.4, signal: "green", rule: "normal" },
+            { t: 10.6, signal: "red", rule: "reverse" },
+            { t: 17.2, signal: "green", rule: "reverse" },
+            { t: 23.4, signal: "green", rule: "normal" },
+            { t: 26.8, signal: "red", rule: "normal" }
+          ]
         }
-        PHASES.push(LIGHTS[li]);
-      }
+      };
+      var TEACH = {
+        normal: [
+          { kind: "release", signal: "green", rule: "normal", text: "放開手指，讓方塊往前走。" },
+          { kind: "brake", signal: "red", rule: "normal", text: "紅燈。按住煞車，方塊會停。" }
+        ],
+        reverse: [
+          { kind: "brake", signal: "red", rule: "normal", text: "正常：紅燈要停。按住煞車。" },
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉了：綠燈要停。再按住。" }
+        ],
+        lock: [
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。倒數完會寫唔準按。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。倒數完會寫唔準放手。" }
+        ],
+        mix: [
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。按住。" },
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。倒數完鎖定，唔準按。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。倒數完鎖定，唔準放手。" }
+        ]
+      };
+      var YELLOW = 0.5;
+      var REACT = 0.35;
+      var MOVE_RATE = 100 / 13.2;
+      var LOCKS = [];
+      var PHASES = [];
+      var levelId = "normal";
 
       var app = document.getElementById("app");
       var timeValue = document.getElementById("timeValue");
@@ -706,16 +819,27 @@
       var cardDetail = document.getElementById("cardDetail");
       var cardMeta = document.getElementById("cardMeta");
       var cardBtn = document.getElementById("cardBtn");
+      var menuBtn = document.getElementById("menuBtn");
+      var menu = document.getElementById("menu");
+      var teachBar = document.getElementById("teachBar");
+      var teachText = document.getElementById("teachText");
+      var startBtn = document.getElementById("startBtn");
+      var preLock = document.getElementById("preLock");
+      var preNum = document.getElementById("preNum");
+      var timeCaption = document.getElementById("timeCaption");
 
       var debug = new URLSearchParams(location.search).has("debug");
       var loopPaused = debug;
-      var mode = "playing";
+      var mode = "menu";
+      var pausedFrom = "playing";
       var elapsed = 0;
       var progress = 0;
       var phaseIndex = 0;
+      var graceUntil = 0;
       var resumeGraceLeft = 0;
       var lockSnap = null;
       var seenLock = -1;
+      var teach = { step: 0, acc: 0, ready: false, phase: "choose", captured: null, countLeft: 0 };
       var inputArmedAt = 0;
       var braking = false;
       var spaceHeld = false;
@@ -727,7 +851,29 @@
       var dashOffset = 0;
       var lastTs = performance.now();
       var storageOk = true;
-      var best = { bestTimeMs: null, bestProgress: 0 };
+      function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
+      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore() };
+      function slot() { return bests[levelId]; }
+
+      function applyLevel(id) {
+        var spec = LEVELS[id];
+        levelId = id;
+        YELLOW = spec.yellow;
+        REACT = spec.react;
+        MOVE_RATE = 100 / spec.move;
+        LOCKS = spec.locks;
+        PHASES = [];
+        for (var i = 0; i < spec.lights.length; i++) {
+          if (i > 0) {
+            PHASES.push({
+              t: Math.round((spec.lights[i].t - spec.yellow) * 1000) / 1000,
+              signal: "yellow",
+              rule: spec.lights[i - 1].rule
+            });
+          }
+          PHASES.push(spec.lights[i]);
+        }
+      }
 
       function phaseAt(t) {
         var index = 0;
@@ -767,11 +913,16 @@
         try {
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
-          if (typeof data.bestTimeMs === "number" && data.bestTimeMs > 0 && data.bestTimeMs < 120000) {
-            best.bestTimeMs = data.bestTimeMs;
-          }
-          if (typeof data.bestProgress === "number" && data.bestProgress > 0 && data.bestProgress <= 100) {
-            best.bestProgress = data.bestProgress;
+          if (data.v === 2 && data.levels) {
+            ["normal", "reverse", "lock", "mix"].forEach(function (key) {
+              var item = data.levels[key];
+              if (!item) return;
+              if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
+              if (typeof item.bestProgress === "number" && item.bestProgress > 0 && item.bestProgress <= 100) bests[key].bestProgress = item.bestProgress;
+            });
+          } else if (typeof data.bestTimeMs === "number" || typeof data.bestProgress === "number") {
+            if (typeof data.bestTimeMs === "number" && data.bestTimeMs > 0 && data.bestTimeMs < 120000) bests.mix.bestTimeMs = data.bestTimeMs;
+            if (typeof data.bestProgress === "number" && data.bestProgress > 0 && data.bestProgress <= 100) bests.mix.bestProgress = data.bestProgress;
           }
         } catch (err) {
           return;
@@ -781,21 +932,34 @@
       function saveBest() {
         if (!storageOk) return;
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(best));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 2, levels: bests }));
         } catch (err) {
           storageOk = false;
         }
       }
 
-      function bestLabel() {
-        if (best.bestTimeMs != null) return "最佳 " + formatSeconds(best.bestTimeMs / 1000) + " 秒";
-        if (best.bestProgress > 0) return "最佳進度 " + Math.floor(best.bestProgress) + "%";
+      function scoreText(item) {
+        if (!item) return "尚無紀錄";
+        if (item.bestTimeMs != null) return "最佳 " + formatSeconds(item.bestTimeMs / 1000) + " 秒";
+        if (item.bestProgress > 0) return "最佳進度 " + Math.floor(item.bestProgress) + "%";
         return "尚無紀錄";
+      }
+
+      function bestLabel() {
+        if (mode === "menu") return "四個關卡都可直接玩";
+        return LEVELS[levelId].name + " · " + scoreText(slot());
+      }
+
+      function paintMenu() {
+        setText(document.getElementById("bestNormal"), scoreText(bests.normal));
+        setText(document.getElementById("bestReverse"), scoreText(bests.reverse));
+        setText(document.getElementById("bestLock"), scoreText(bests.lock));
+        setText(document.getElementById("bestMix"), scoreText(bests.mix));
       }
 
       function rememberProgress() {
         var value = Math.round(progress * 10) / 10;
-        if (value > (best.bestProgress || 0)) best.bestProgress = value;
+        if (value > (slot().bestProgress || 0)) slot().bestProgress = value;
         saveBest();
       }
 
@@ -804,7 +968,7 @@
       }
 
       function syncBraking() {
-        if (mode !== "playing") {
+        if (mode !== "playing" && mode !== "teaching") {
           braking = false;
           return;
         }
@@ -840,7 +1004,7 @@
           kind: "lock",
           kicker: "出局",
           title: "鎖定時動作變了",
-          detail: held ? "鎖定時要維持按住，你放開了。" : "鎖定時要維持放開，你按住了。",
+          detail: held ? "唔準放手，你放開了。" : "唔準按，你按住了。",
           meta: "進度 " + Math.floor(progress) + "%"
         };
         releaseInputs();
@@ -886,10 +1050,10 @@
         mode = "won";
         progress = 100;
         var ms = Math.round(elapsed * 1000);
-        var prev = best.bestTimeMs;
+        var prev = slot().bestTimeMs;
         var improved = prev == null || ms < prev;
-        if (improved) best.bestTimeMs = ms;
-        best.bestProgress = 100;
+        if (improved) slot().bestTimeMs = ms;
+        slot().bestProgress = 100;
         saveBest();
         result = {
           kind: "win",
@@ -905,7 +1069,10 @@
         if (mode !== "playing") return;
         elapsed += dt;
         var info = phaseAt(elapsed);
-        if (info.index !== phaseIndex) phaseIndex = info.index;
+        if (info.index !== phaseIndex) {
+          phaseIndex = info.index;
+          if (!info.phase.safe && info.phase.signal !== "yellow") graceUntil = info.phase.t + REACT;
+        }
         var wasResume = resumeGraceLeft > 0;
         if (resumeGraceLeft > 0) resumeGraceLeft = Math.max(0, resumeGraceLeft - dt);
         var lk = lockAt(elapsed);
@@ -913,17 +1080,17 @@
         if (!lockActive) {
           seenLock = -1;
           lockSnap = null;
-        } else if (seenLock !== lk.index) {
+        } else if (!wasResume && seenLock !== lk.index) {
           seenLock = lk.index;
-          lockSnap = null;
+          lockSnap = braking;
         }
-        if (lockActive && !wasResume && lockSnap === null) lockSnap = braking;
-        if (lockActive && !wasResume && lockSnap !== null && braking !== lockSnap) {
+        var onset = lockActive && (elapsed - lk.lock.start) < LOCK_ONSET;
+        if (lockActive && !wasResume && lockSnap !== null && !onset && braking !== lockSnap) {
           failLock(lockSnap);
           return;
         }
         var req = requiredOf(info.phase);
-        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume || lockActive;
+        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume || lockActive || elapsed < graceUntil;
         var moving = !braking && !wasResume;
         if (!protectedTime && req === "stop" && moving) {
           failMove(info.phase);
@@ -941,8 +1108,75 @@
         if (elapsed >= TIME_LIMIT && progress < 100) failTime();
       }
 
+      function teachStep() {
+        return TEACH[levelId][teach.step];
+      }
+
+      function teachTick(dt) {
+        var step = teachStep();
+        if (!step || teach.ready) return;
+        if (step.kind === "release") {
+          if (!braking) {
+            progress = Math.min(28, progress + 18 * dt);
+            teach.acc += dt;
+          } else teach.acc = 0;
+          if (teach.acc > 0.35 && progress > 2) finishTeachStep();
+        } else if (step.kind === "brake") {
+          if (braking) teach.acc += dt;
+          else teach.acc = 0;
+          if (teach.acc > 0.3) finishTeachStep();
+        } else if (step.kind === "lock") {
+          var wanted = !!step.force;
+          if (teach.phase === "choose") {
+            if (braking === wanted) teach.acc += dt;
+            else teach.acc = 0;
+            if (teach.acc > 0.3) {
+              teach.phase = "count";
+              teach.acc = 3;
+            }
+          } else if (teach.phase === "count") {
+            teach.acc -= dt;
+            if (teach.acc <= 0) {
+              if (braking !== wanted) {
+                teach.phase = "choose";
+                teach.acc = 0;
+              } else {
+                teach.captured = braking;
+                teach.phase = "keep";
+                teach.acc = 0;
+              }
+            }
+          } else if (braking === teach.captured) {
+            teach.acc += dt;
+            if (teach.acc > 0.4) finishTeachStep();
+          } else {
+            teach.acc = 0;
+          }
+        }
+      }
+
+      function finishTeachStep() {
+        if (teach.step < TEACH[levelId].length - 1) {
+          teach.step += 1;
+          teach.acc = 0;
+          teach.phase = "choose";
+          teach.captured = null;
+          teach.ready = false;
+          teach.lastBrake = braking;
+          startBtn.hidden = true;
+        } else {
+          teach.ready = true;
+          startBtn.hidden = false;
+          setText(teachText, "練習完成。按開始挑戰。");
+        }
+      }
+
       function update(dt) {
         if (!Number.isFinite(dt) || dt <= 0) return;
+        if (mode === "teaching") {
+          teachTick(dt);
+          return;
+        }
         var left = dt;
         while (left > 0 && mode === "playing") {
           var step = Math.min(0.05, left);
@@ -952,9 +1186,12 @@
       }
 
       function warningText() {
-        if (resumeGraceLeft > 0) return "反應時間";
+        if (resumeGraceLeft > 0 && mode === "playing") return "反應時間";
         var lk = lockAt(elapsed);
-        if (lk && lk.phase === "warn") return "即將鎖定";
+        if (mode === "playing" && lk && lk.phase === "warn") {
+          var n = Math.max(1, Math.ceil(lk.lock.start - elapsed - 1e-6));
+          return "即將鎖定 " + n;
+        }
         return "";
       }
 
@@ -967,13 +1204,29 @@
         return 0;
       }
 
+      function paintLockWord(held) {
+        if (held) {
+          finger.classList.add("is-held");
+          setText(lockHold, "唔準放手");
+        } else {
+          finger.classList.remove("is-held");
+          setText(lockHold, "唔準按");
+        }
+      }
+
       function movingNow() {
         return mode === "playing" && !braking && resumeGraceLeft <= 0;
       }
 
       function render() {
-        var info = phaseAt(elapsed);
+        var info = phaseAt(Math.max(0, elapsed));
         var phase = info.phase;
+        var teaching = mode === "teaching" || (mode === "paused" && pausedFrom === "teaching");
+        if (teaching) {
+          var step = teachStep();
+          phase = { signal: step.signal, rule: step.rule, safe: true };
+          info = { phase: phase, next: null, index: 0 };
+        }
         var req = requiredOf(phase);
         var warn = mode === "playing" ? warningText() : "";
         var ratio = mode === "playing" ? graceRatio() : 0;
@@ -985,7 +1238,15 @@
         app.dataset.rule = phase.rule;
         app.dataset.required = req;
 
-        setText(timeValue, formatSeconds(remain));
+        if (mode === "playing" || (mode === "paused" && pausedFrom === "playing")) {
+          setText(timeCaption, "剩餘");
+          setText(timeValue, formatSeconds(remain));
+          timer.querySelector(".sec").hidden = false;
+        } else {
+          setText(timeCaption, "教學");
+          setText(timeValue, "—");
+          timer.querySelector(".sec").hidden = true;
+        }
         timer.classList.toggle("is-low", mode === "playing" && remain <= 5);
         setText(bestLine, bestLabel());
         storageNote.hidden = storageOk;
@@ -1022,30 +1283,29 @@
         var travel = Math.max(0, laneH - 34 - 36);
         car.style.bottom = (8 + (progress / 100) * travel) + "px";
         dashes.style.backgroundPositionY = dashOffset.toFixed(2) + "px";
-        var lkNow = mode === "playing" || mode === "paused" ? lockAt(elapsed) : null;
+        var lkNow = (!teaching && (mode === "playing" || mode === "paused")) ? lockAt(elapsed) : null;
         var lockActive = !!(lkNow && lkNow.phase === "active");
-        signal.classList.toggle("is-locked", lockActive);
-        lockCard.hidden = !lockActive;
+        var counting = !!(lkNow && lkNow.phase === "warn");
+        var teachCount = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "count";
+        var teachKeep = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "keep";
+        signal.classList.toggle("is-locked", lockActive || teachKeep);
+        preLock.hidden = !(counting || teachCount);
+        lockCard.hidden = !(lockActive || teachKeep);
+        if (counting) setText(preNum, String(Math.max(1, Math.ceil(lkNow.lock.start - elapsed - 1e-6))));
+        if (teachCount) setText(preNum, String(Math.max(1, Math.ceil(teach.acc - 1e-6))));
         if (lockActive && lkNow) {
-          var leftSec = Math.max(0, lkNow.lock.end - elapsed);
-          setText(lockCount, formatSeconds(leftSec) + " 秒");
-          if (lockSnap === null) {
-            finger.classList.remove("is-held");
-            setText(lockHold, "保持剛才動作");
-          } else if (lockSnap) {
-            finger.classList.add("is-held");
-            setText(lockHold, "保持按住");
-          } else {
-            finger.classList.remove("is-held");
-            setText(lockHold, "保持放開");
-          }
+          setText(lockCount, formatSeconds(Math.max(0, lkNow.lock.end - elapsed)) + " 秒");
+          paintLockWord(lockSnap);
+        } else if (teachKeep) {
+          setText(lockCount, "練習");
+          paintLockWord(teach.captured);
         }
 
         car.classList.toggle("is-moving", moving);
         car.classList.toggle("is-braking", braking);
         pedal.classList.toggle("is-held", braking);
         setText(pedalSub, braking ? "煞車中" : moving ? "前進中" : "放開前進");
-        pauseBtn.hidden = mode !== "playing";
+        pauseBtn.hidden = mode !== "playing" && mode !== "teaching";
 
         var cardModel = null;
         if (mode === "paused") {
@@ -1055,7 +1315,7 @@
               kind: "pause",
               kicker: "已暫停",
               title: "鎖定中",
-              detail: lockSnap ? "時間不會流逝。繼續後請維持按住。" : "時間不會流逝。繼續後請維持放開。",
+              detail: lockSnap ? "唔準放手" : "唔準按",
               meta: "",
               btn: "繼續"
             };
@@ -1080,6 +1340,11 @@
           };
         }
 
+        menu.hidden = mode !== "menu";
+        teachBar.hidden = !teaching;
+        if (teaching && !teach.ready) setText(teachText, teachStep().text);
+        if (mode === "menu") paintMenu();
+
         if (cardModel) {
           card.dataset.kind = cardModel.kind;
           setText(cardKicker, cardModel.kicker);
@@ -1101,9 +1366,59 @@
         }
       }
 
+      function showMenu() {
+        mode = "menu";
+        result = null;
+        teach.ready = false;
+        releaseInputs();
+        render();
+      }
+
+      function beginTeach(id) {
+        applyLevel(id);
+        mode = "teaching";
+        pausedFrom = "teaching";
+        elapsed = 0;
+        progress = 0;
+        phaseIndex = 0;
+        graceUntil = 0;
+        resumeGraceLeft = 0;
+        lockSnap = null;
+        seenLock = -1;
+        result = null;
+        teach = { step: 0, acc: 0, ready: false, phase: "choose", captured: null, countLeft: 3, lastBrake: false };
+        startBtn.hidden = true;
+        releaseInputs();
+        inputArmedAt = performance.now() + 180;
+        setText(teachText, TEACH[id][0].text);
+        render();
+      }
+
+      function beginChallenge() {
+        if (mode !== "teaching" || !teach.ready) return;
+        applyLevel(levelId);
+        mode = "playing";
+        pausedFrom = "playing";
+        elapsed = 0;
+        progress = 0;
+        phaseIndex = 0;
+        graceUntil = 0;
+        resumeGraceLeft = 0;
+        lockSnap = null;
+        seenLock = -1;
+        result = null;
+        teach.ready = false;
+        startBtn.hidden = true;
+        releaseInputs();
+        inputArmedAt = performance.now() + 220;
+        lastTs = performance.now();
+        render();
+      }
+
       function enterPause(reason) {
-        if (mode === "won" || mode === "lost") return;
+        if (mode !== "playing" && mode !== "teaching") return;
         if (mode !== "paused") {
+          pausedFrom = mode;
           mode = "paused";
           pausedReason = reason || "manual";
         }
@@ -1113,34 +1428,22 @@
 
       function resume() {
         if (mode !== "paused") return;
-        mode = "playing";
+        mode = pausedFrom === "teaching" ? "teaching" : "playing";
         pausedReason = "";
-        resumeGraceLeft = RESUME_GRACE;
+        if (mode === "playing") resumeGraceLeft = RESUME_GRACE;
         releaseInputs();
-        inputArmedAt = performance.now() + 160;
+        inputArmedAt = performance.now() + 180;
         lastTs = performance.now();
         render();
       }
 
       function restart() {
-        elapsed = 0;
-        progress = 0;
-        phaseIndex = 0;
-        resumeGraceLeft = 0;
-        lockSnap = null;
-        seenLock = -1;
-        result = null;
-        pausedReason = "";
-        dashOffset = 0;
-        mode = "playing";
-        releaseInputs();
-        lastTs = performance.now();
-        if (document.hidden) enterPause("hidden");
-        else render();
+        if (levelId) beginTeach(levelId);
+        else showMenu();
       }
 
       function onPointerDown(event) {
-        if (mode !== "playing") return;
+        if (mode !== "playing" && mode !== "teaching") return;
         if (!inputsArmed()) return;
         if (event.target.closest("[data-no-brake]")) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -1159,7 +1462,7 @@
       });
       window.addEventListener("pointercancel", function () {
         pointers.clear();
-        if (mode === "playing") enterPause("cancel");
+        if (mode === "playing" || mode === "teaching") enterPause("cancel");
         else { syncBraking(); render(); }
       });
       app.addEventListener("lostpointercapture", function (event) {
@@ -1176,7 +1479,7 @@
       }, { passive: true });
       window.addEventListener("touchcancel", function () {
         pointers.clear();
-        if (mode === "playing") enterPause("cancel");
+        if (mode === "playing" || mode === "teaching") enterPause("cancel");
         else { syncBraking(); render(); }
       }, { passive: true });
       window.addEventListener("contextmenu", function (event) { event.preventDefault(); });
@@ -1184,7 +1487,7 @@
       window.addEventListener("keydown", function (event) {
         if (event.code === "Escape") {
           event.preventDefault();
-          if (mode === "playing") enterPause("manual");
+          if (mode === "playing" || mode === "teaching") enterPause("manual");
           return;
         }
         if (event.code !== "Space" && event.code !== "Enter") return;
@@ -1213,18 +1516,27 @@
       });
 
       pauseBtn.addEventListener("click", function () {
-        if (mode === "playing") enterPause("manual");
+        if (mode === "playing" || mode === "teaching") enterPause("manual");
       });
       cardBtn.addEventListener("click", function () {
         if (mode === "paused") resume();
-        else if (mode === "won" || mode === "lost") restart();
+        else if (mode === "won" || mode === "lost") beginTeach(levelId);
       });
+      menuBtn.addEventListener("click", function () { showMenu(); });
+      startBtn.addEventListener("click", function () { beginChallenge(); });
+      document.getElementById("teachMenu").addEventListener("click", function () { showMenu(); });
+      var levelButtons = menu.querySelectorAll("button[data-level]");
+      for (var bi = 0; bi < levelButtons.length; bi++) {
+        levelButtons[bi].addEventListener("click", function (event) {
+          beginTeach(event.currentTarget.getAttribute("data-level"));
+        });
+      }
 
       var blurArmed = document.hasFocus();
       document.addEventListener("visibilitychange", function () {
         if (document.hidden) {
           releaseInputs();
-          if (mode === "playing") enterPause("hidden");
+          if (mode === "playing" || mode === "teaching") enterPause("hidden");
           else render();
         }
       });
@@ -1235,7 +1547,7 @@
       window.addEventListener("blur", function () {
         releaseInputs();
         if (!blurArmed) return;
-        if (mode === "playing") enterPause("blur");
+        if (mode === "playing" || mode === "teaching") enterPause("blur");
         else render();
       });
       window.addEventListener("pageshow", function () { lastTs = performance.now(); });
@@ -1249,9 +1561,9 @@
         requestAnimationFrame(frame);
       }
 
+      applyLevel("normal");
       loadBest();
-      if (document.hidden) enterPause("hidden");
-      else render();
+      showMenu();
       requestAnimationFrame(frame);
 
       if (debug) {
@@ -1291,8 +1603,15 @@
               phaseIndex: info.index,
               pausedReason: pausedReason,
               result: result,
-              bestTimeMs: best.bestTimeMs,
-              bestProgress: best.bestProgress,
+              level: levelId,
+              teachStep: teach.step,
+              teachReady: teach.ready,
+              teachPhase: teach.phase,
+              teachKind: (mode === "teaching" || pausedFrom === "teaching") && TEACH[levelId][teach.step] ? TEACH[levelId][teach.step].kind : "",
+              teachForce: (mode === "teaching" || pausedFrom === "teaching") && TEACH[levelId][teach.step] ? !!TEACH[levelId][teach.step].force : false,
+              preNumber: preLock.hidden ? "" : preNum.textContent,
+              bestTimeMs: slot().bestTimeMs,
+              bestProgress: slot().bestProgress,
               storageOk: storageOk,
               overlay: !overlay.hidden,
               ruleText: ruleCard.classList.contains("is-reverse") ? "反轉：紅行、綠停" : "正常：綠行、紅停",

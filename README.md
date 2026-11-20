@@ -2,7 +2,7 @@
 
 Silent portrait mini-game. A block drives itself toward the finish. Hold to brake, release to move. The light switches between red and green, and the rule flips between “green means go” and “red means go”.
 
-One round is 30 seconds. The card says 正常：綠行、紅停, or flips to 反轉：紅行、綠停 when the rule actually changes. Yellow is a half-second preview and may say a change is coming; either action is allowed while it is on. A lock covers the card and keeps the hand position you already had until the countdown ends. The clock keeps running. Coming back from a pause gives a short grace to match the lock or the lights again.
+Choose 正常燈, 反轉, 鎖定, or 混合挑戰. Each one starts with a short practice, then a 30-second run. The card says 正常：綠行、紅停, or flips to 反轉：紅行、綠停 when the rule changes. Before a lock, the screen counts 3, 2, 1. When it ends, 唔準按 means do not press and 唔準放手 means do not let go. Yellow is only a preview. Coming back from a pause gives a short grace.
 
 ## Controls
 
