@@ -2,7 +2,7 @@
 
 Silent portrait mini-game. A block drives itself toward the finish. Hold to brake, release to move. The light switches between red and green, and the rule flips between “green means go” and “red means go”.
 
-Choose 正常燈, 反轉, 鎖定, or 混合挑戰. Each fresh entry starts with a short practice, then a 30-second run. 再來一局 restarts that 30-second run. 重看教學 plays the practice again. The card says 正常：綠行、紅停, or flips to 反轉：紅行、綠停 when the rule changes. Before a lock, the screen counts 3, 2, 1. When it ends, the brake state at that moment is kept: 唔準按 means do not press, and 唔準放手 means do not let go. During the lock the lamps keep changing and stay visible; only the lock is enforced. Yellow is the neutral exit, with a short grace before the lamp rule returns. Coming back from a pause gives a short grace.
+Choose 正常燈, 反轉, 鎖定, 混合挑戰, or 突發事件. Each fresh entry starts with a short practice. 跳過教學 starts the 30-second run immediately. 再來一局 restarts that run. 重看教學 plays the practice again. The card says 正常：綠行、紅停, or flips to 反轉：紅行、綠停 when the rule changes. Before the lights break, the screen counts 3, 2, 1. When it ends, 保持通行 means keep moving and 保持停止 means stay stopped. The lamps keep changing and stay visible; only that captured state is enforced until yellow, then a short grace. 突發事件 adds sudden stops: 阿婆跌橙, 蜘蛛俠互指, and 季候風. Coming back from a pause gives a short grace.
 
 ## Controls
 

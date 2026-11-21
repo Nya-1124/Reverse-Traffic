@@ -151,6 +151,16 @@
       .lamp { height: 34px; }
     }
     .mini { width: 18px; height: 18px; flex: none; }
+    #signal.is-broken .housing {
+      background: #241416;
+      outline: 3px dashed #e23b3b;
+      outline-offset: 2px;
+    }
+    #signal.is-broken .lamp.is-on { animation: flicker 0.45s steps(2, end) infinite; }
+    @keyframes flicker { 50% { filter: brightness(1.4); } }
+    @media (prefers-reduced-motion: reduce) {
+      #signal.is-broken .lamp.is-on { animation: none; }
+    }
     #rulePreview {
       margin: 4px 0 0;
       font-size: 13px;
@@ -158,7 +168,7 @@
       letter-spacing: 0.06em;
       color: #f6d98a;
     }
-    #preLock, #lockCard {
+    #preLock, #lockCard, #eventCard {
       position: absolute;
       left: 50%;
       top: 50%;
@@ -171,37 +181,29 @@
       text-align: center;
       box-sizing: border-box;
     }
-    #preLock {
+    #preLock, #lockCard, #eventCard {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 12px 16px;
+      gap: 2px;
+      padding: 8px 12px;
       border-radius: 18px;
-      background: rgba(16, 18, 22, 0.9);
+      background: rgba(16, 18, 22, 0.92);
       color: #f6d98a;
       border: 3px solid #e6a817;
       box-shadow: 0 0 0 3px #4a3410;
     }
-    #preNum { font-size: 84px; line-height: 0.9; font-weight: 700; color: #ff2d2d; }
-    #lockCard {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 14px 12px;
-      border-radius: 18px;
-      background: rgba(16, 18, 22, 0.9);
-      color: #f6d98a;
-      border: 3px solid #e6a817;
-      box-shadow: 0 0 0 3px #4a3410;
-    }
-    #lockCard p { margin: 0; }
-    #lockTitle { display: none; }
-    #finger { width: 28px; height: 36px; border: 3px solid #ff2d2d; border-radius: 14px 14px 8px 8px; margin: 0 auto 4px; }
-    #finger.is-held { background: #ff2d2d; }
-    #lockHold { font-size: 64px; font-weight: 700; line-height: 1; color: #ff2d2d; }
-    #lockCount { font-size: 18px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
+    #preNum { font-size: 72px; line-height: 0.9; font-weight: 700; color: #ff2d2d; }
+    #lockKicker, #eventSub { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
+    #lockHold, #eventTitle { font-size: 36px; font-weight: 700; line-height: 1.05; color: #ff2d2d; }
+    #eventCard[data-kind="grandma"] { border-color: #f0b429; }
+    #eventCard[data-kind="spidey"] { border-color: #e23b3b; }
+    #eventCard[data-kind="wind"] { border-color: #7ec8e3; }
+    #eventTitle { color: #f4f1e6; font-size: 26px; }
+    .art { width: 148px; height: 36px; display: block; }
+    #lockCount, #eventSub { font-size: 16px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
+    #car.is-gust { transform: rotate(-8deg); }
+    #car.is-gust.is-braking { transform: rotate(-8deg) scale(1.04, 0.92); }
     @media (prefers-reduced-motion: reduce) {
       .rule-inner, .rule-reverse, #ruleCard.is-reverse .rule-inner { transform: none; transition: opacity 0.2s linear; }
       .rule-face { backface-visibility: visible; transition: opacity 0.2s linear; }
@@ -547,7 +549,7 @@
       box-shadow: 3px 3px 0 #171b1f;
     }
     #menu .lvl-best { margin: 4px 0 12px; color: #3a342c; font-size: 14px; font-weight: 700; }
-    #replayBtn, #teachMenu {
+    #replayBtn {
       width: 100%;
       height: 48px;
       margin-top: 8px;
@@ -556,6 +558,20 @@
       background: #fffdf8;
       color: #171b1f;
       font-size: 17px;
+      font-weight: 700;
+    }
+    .teach-row { display: flex; gap: 8px; margin-top: 8px; }
+    #skipBtn, #teachMenu {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+      height: 44px;
+      margin-top: 0;
+      border-radius: 12px;
+      border: 2px solid #171b1f;
+      background: #fffdf8;
+      color: #171b1f;
+      font-size: 16px;
       font-weight: 700;
     }
     #teachBar {
@@ -602,10 +618,10 @@
       .pedal-title { font-size: 22px; }
       #teachBar { padding: 8px 10px; }
       #teachText { font-size: 16px; }
-      #replayBtn, #teachMenu, #startBtn { height: 44px; margin-top: 6px; }
+      #replayBtn, #startBtn { height: 44px; margin-top: 6px; }
+      #skipBtn, #teachMenu { height: 40px; font-size: 15px; }
       #preNum { font-size: 52px; }
-      #lockHold { font-size: 34px; }
-      #finger { width: 22px; height: 26px; }
+      #lockHold, #eventTitle { font-size: 28px; }
       #preLock, #lockCard { padding: 6px 8px; }
       .card { padding: 12px 14px 12px; }
       #cardTitle { font-size: 26px; }
@@ -613,10 +629,10 @@
     }
     @container (max-height: 260px) {
       #preNum { font-size: 44px; }
-      #lockHold { font-size: 28px; }
-      #lockCount { font-size: 14px; }
-      #finger { width: 18px; height: 22px; margin-bottom: 0; }
-      #preLock, #lockCard { padding: 4px 8px; gap: 2px; }
+      #lockHold, #eventTitle { font-size: 24px; }
+      #lockCount, #eventSub { font-size: 14px; }
+      .art { height: 28px; }
+      #preLock, #lockCard, #eventCard { padding: 4px 8px; gap: 2px; }
     }
   </style>
 </head>
@@ -697,13 +713,36 @@
           <div class="lights"><i></i><i></i></div>
         </div>
         <div id="preLock" hidden>
-          <p>即將鎖定</p>
+          <p>燈快壞了</p>
           <p id="preNum">3</p>
         </div>
         <div id="lockCard" hidden>
-          <div id="finger" aria-hidden="true"></div>
-          <p id="lockHold">唔準按</p>
+          <p id="lockKicker">燈壞了</p>
+          <p id="lockHold">保持通行</p>
           <p id="lockCount">0.0 秒</p>
+        </div>
+        <div id="eventCard" hidden data-kind="grandma">
+          <svg class="art" id="artGrandma" viewBox="0 0 148 36" aria-hidden="true">
+            <circle cx="18" cy="10" r="5" fill="#f3efe4"></circle>
+            <path d="M18 15 v10 M12 20 h12 M14 25 l-4 8 M22 25 l4 8" stroke="#f3efe4" stroke-width="2" fill="none"></path>
+            <circle cx="78" cy="28" r="5" fill="#f0b429"></circle>
+            <circle cx="100" cy="24" r="4" fill="#e23b3b"></circle>
+            <circle cx="122" cy="28" r="5" fill="#f0b429"></circle>
+          </svg>
+          <svg class="art" id="artSpidey" viewBox="0 0 148 36" aria-hidden="true" hidden>
+            <g fill="#e23b3b">
+              <circle cx="24" cy="14" r="7"></circle>
+              <circle cx="74" cy="14" r="7"></circle>
+              <circle cx="124" cy="14" r="7"></circle>
+            </g>
+            <path d="M31 16 L64 18 M84 16 L117 18 M31 22 L64 20 M84 22 L117 20" stroke="#7ec8e3" stroke-width="3" fill="none"></path>
+          </svg>
+          <svg class="art" id="artWind" viewBox="0 0 148 36" aria-hidden="true" hidden>
+            <path d="M8 10 h70 M8 18 h90 M8 26 h60" stroke="#7ec8e3" stroke-width="3" fill="none"></path>
+            <path d="M108 8 v16 a6 6 0 1 0 6-6" stroke="#f4f1e6" stroke-width="2" fill="none"></path>
+          </svg>
+          <p id="eventTitle">阿婆跌橙</p>
+          <p id="eventSub">快停</p>
         </div>
       </div>
       <div id="pedal" aria-live="polite">
@@ -718,7 +757,10 @@
     <div id="teachBar" hidden data-no-brake>
       <p id="teachText">先練習這個關卡。</p>
       <button id="startBtn" type="button" hidden>開始挑戰</button>
-      <button id="teachMenu" type="button">選關</button>
+      <div class="teach-row">
+        <button id="skipBtn" type="button">跳過教學</button>
+        <button id="teachMenu" type="button">選關</button>
+      </div>
     </div>
 
     <div id="menu" data-no-brake>
@@ -731,6 +773,8 @@
       <p class="lvl-best" id="bestLock">尚無紀錄</p>
       <button type="button" data-level="mix">混合挑戰</button>
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
+      <button type="button" data-level="event">突發事件</button>
+      <p class="lvl-best" id="bestEvent">尚無紀錄</p>
     </div>
 
     <div id="overlay" hidden data-no-brake>
@@ -812,7 +856,29 @@
             { t: 20.0, signal: "red", rule: "reverse" },
             { t: 22.6, signal: "green", rule: "normal" }
           ]
+        },
+        event: {
+          name: "突發事件", yellow: 0.55, react: 0.4, move: 11.2, locks: [],
+          events: [
+            { t: 7.2, react: 0.6, dur: 2.2, id: "grandma" },
+            { t: 14.2, react: 0.6, dur: 2.2, id: "spidey" },
+            { t: 21.0, react: 0.6, dur: 2.2, id: "wind" }
+          ],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 3.6, signal: "red", rule: "normal" },
+            { t: 6.4, signal: "green", rule: "normal" },
+            { t: 10.8, signal: "red", rule: "normal" },
+            { t: 13.4, signal: "green", rule: "normal" },
+            { t: 17.6, signal: "red", rule: "normal" },
+            { t: 20.2, signal: "green", rule: "normal" }
+          ]
         }
+      };
+      var EVENT_COPY = {
+        grandma: { title: "阿婆跌橙", detail: "阿婆過馬路跌橙，你還沒停。" },
+        spidey: { title: "蜘蛛俠互指", detail: "三個蜘蛛俠互指，你還沒停。" },
+        wind: { title: "季候風來了", detail: "有人唱季候風，車被吹歪，你還沒停。" }
       };
       var TEACH = {
         normal: [
@@ -824,19 +890,24 @@
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" }
         ],
         lock: [
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈會變，仍唔準按。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈會變，仍唔準放手。" }
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈壞後要保持通行。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈壞後要保持停止。" }
         ],
         mix: [
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" },
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈會變，仍唔準按。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈會變，仍唔準放手。" }
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈壞後要保持通行。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈壞後要保持停止。" }
+        ],
+        event: [
+          { kind: "release", signal: "green", rule: "normal", text: "放開，方塊往前走。" },
+          { kind: "event", event: "grandma", signal: "green", rule: "normal", text: "阿婆跌橙。立刻按住。" }
         ]
       };
       var YELLOW = 0.5;
       var REACT = 0.35;
       var MOVE_RATE = 100 / 13.2;
       var LOCKS = [];
+      var EVENTS = [];
       var PHASES = [];
       var levelId = "normal";
 
@@ -853,8 +924,13 @@
       var ruleCard = document.getElementById("ruleCard");
       var rulePreview = document.getElementById("rulePreview");
       var lockCard = document.getElementById("lockCard");
-      var finger = document.getElementById("finger");
       var lockHold = document.getElementById("lockHold");
+      var eventCard = document.getElementById("eventCard");
+      var eventTitle = document.getElementById("eventTitle");
+      var artGrandma = document.getElementById("artGrandma");
+      var artSpidey = document.getElementById("artSpidey");
+      var artWind = document.getElementById("artWind");
+      var skipBtn = document.getElementById("skipBtn");
       var lockCount = document.getElementById("lockCount");
       var banner = document.getElementById("banner");
       var bannerText = document.getElementById("bannerText");
@@ -910,7 +986,7 @@
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore() };
+      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore() };
       function slot() { return bests[levelId]; }
 
       function applyLevel(id) {
@@ -920,6 +996,7 @@
         REACT = spec.react;
         MOVE_RATE = 100 / spec.move;
         LOCKS = spec.locks;
+        EVENTS = spec.events || [];
         PHASES = [];
         for (var i = 0; i < spec.lights.length; i++) {
           if (i > 0) {
@@ -972,7 +1049,7 @@
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
           if (data.v === 2 && data.levels) {
-            ["normal", "reverse", "lock", "mix"].forEach(function (key) {
+            ["normal", "reverse", "lock", "mix", "event"].forEach(function (key) {
               var item = data.levels[key];
               if (!item) return;
               if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
@@ -1013,6 +1090,7 @@
         setText(document.getElementById("bestReverse"), scoreText(bests.reverse));
         setText(document.getElementById("bestLock"), scoreText(bests.lock));
         setText(document.getElementById("bestMix"), scoreText(bests.mix));
+        setText(document.getElementById("bestEvent"), scoreText(bests.event));
       }
 
       function rememberProgress() {
@@ -1061,12 +1139,37 @@
         result = {
           kind: "lock",
           kicker: "出局",
-          title: "鎖定時動作變了",
-          detail: held ? "唔準放手，你放開了。" : "唔準按，你按住了。",
+          title: held ? "要保持停止" : "要保持通行",
+          detail: held ? "燈壞了，要保持停止，你放開了。" : "燈壞了，要保持通行，你按住了。",
           meta: "進度 " + Math.floor(progress) + "%"
         };
         releaseInputs();
         rememberProgress();
+      }
+
+      function failEvent(ev) {
+        mode = "lost";
+        var copy = EVENT_COPY[ev.id] || EVENT_COPY.grandma;
+        result = {
+          kind: "event",
+          kicker: "突發事件",
+          title: "這時必須停止",
+          detail: copy.detail,
+          meta: "進度 " + Math.floor(progress) + "%"
+        };
+        releaseInputs();
+        rememberProgress();
+      }
+
+      function eventAt(t) {
+        for (var i = 0; i < EVENTS.length; i++) {
+          var ev = EVENTS[i];
+          var end = ev.t + ev.dur;
+          if (t >= ev.t && t < end) {
+            return { index: i, phase: t < ev.t + ev.react ? "react" : "stop", event: ev };
+          }
+        }
+        return null;
       }
 
       function failMove(phase) {
@@ -1147,14 +1250,25 @@
           seenLock = lk.index;
           lockSnap = braking;
         }
+        for (var ei = 0; ei < EVENTS.length; ei++) {
+          var evEnd = EVENTS[ei].t + EVENTS[ei].dur;
+          if (elapsed - dt < evEnd && elapsed >= evEnd) {
+            graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, 0.45));
+          }
+        }
         var onset = lockActive && (elapsed - lk.lock.start) < LOCK_ONSET;
         if (lockActive && !wasResume && lockSnap !== null && !onset && braking !== lockSnap) {
           failLock(lockSnap);
           return;
         }
-        var req = requiredOf(info.phase);
-        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume || lockActive || elapsed < graceUntil;
+        var evNow = eventAt(elapsed);
         var moving = !braking && !wasResume;
+        if (evNow && evNow.phase === "stop" && !wasResume && moving) {
+          failEvent(evNow.event);
+          return;
+        }
+        var req = requiredOf(info.phase);
+        var protectedTime = !!info.phase.safe || info.phase.signal === "yellow" || wasResume || lockActive || !!evNow || elapsed < graceUntil;
         if (!protectedTime && req === "stop" && moving) {
           failMove(info.phase);
           return;
@@ -1188,10 +1302,10 @@
           if (!braking) teach.acc += dt;
           else teach.acc = 0;
           if (teach.acc > 0.65 && progress > 55) finishTeachStep();
-        } else if (step.kind === "brake") {
+        } else if (step.kind === "brake" || step.kind === "event") {
           if (braking) teach.acc += dt;
           else teach.acc = 0;
-          if (teach.acc > 0.35) finishTeachStep();
+          if (teach.acc > (step.kind === "event" ? 0.45 : 0.35)) finishTeachStep();
         } else if (step.kind === "lock") {
           var wanted = !!step.force;
           if (teach.phase === "choose") {
@@ -1232,7 +1346,7 @@
           teach.lastBrake = braking;
           startBtn.hidden = true;
           var nextStep = teachStep();
-          var holdPose = nextStep.kind === "brake" || (nextStep.kind === "lock" && nextStep.force);
+          var holdPose = nextStep.kind === "brake" || nextStep.kind === "event" || (nextStep.kind === "lock" && nextStep.force);
           progress = holdPose ? 46 : 8;
         } else {
           teach.ready = true;
@@ -1260,13 +1374,19 @@
         var lk = lockAt(elapsed);
         if (mode === "playing" && lk && lk.phase === "warn") {
           var n = Math.max(1, Math.ceil(lk.lock.start - elapsed - 1e-6));
-          return "即將鎖定 " + n;
+          return "燈快壞了 " + n;
         }
+        var evWarn = eventAt(elapsed);
+        if (mode === "playing" && evWarn) return evWarn.phase === "react" ? "反應時間" : "快停";
         return "";
       }
 
       function graceRatio() {
         if (resumeGraceLeft > 0) return resumeGraceLeft / RESUME_GRACE;
+        var evGrace = eventAt(elapsed);
+        if (evGrace && evGrace.phase === "react") {
+          return Math.max(0, Math.min(1, (evGrace.event.t + evGrace.event.react - elapsed) / evGrace.event.react));
+        }
         var info = phaseAt(elapsed);
         if (info.phase.signal === "yellow" && info.next) {
           return Math.max(0, Math.min(1, (info.next.t - elapsed) / YELLOW));
@@ -1275,13 +1395,26 @@
       }
 
       function paintLockWord(held) {
-        if (held) {
-          finger.classList.add("is-held");
-          setText(lockHold, "唔準放手");
+        setText(lockHold, held ? "保持停止" : "保持通行");
+      }
+
+      function showArt(el, on) {
+        if (on) {
+          el.removeAttribute("hidden");
+          el.style.display = "block";
         } else {
-          finger.classList.remove("is-held");
-          setText(lockHold, "唔準按");
+          el.setAttribute("hidden", "");
+          el.style.display = "none";
         }
+      }
+
+      function paintEvent(id) {
+        var copy = EVENT_COPY[id] || EVENT_COPY.grandma;
+        eventCard.dataset.kind = id;
+        setText(eventTitle, copy.title);
+        showArt(artGrandma, id === "grandma");
+        showArt(artSpidey, id === "spidey");
+        showArt(artWind, id === "wind");
       }
 
       function movingNow() {
@@ -1296,7 +1429,7 @@
         if (teaching) {
           var step = teachStep();
           var teachSignal = step.signal;
-          if (step.kind === "lock" && teach.phase === "keep") {
+          if (!teach.ready && step.kind === "lock" && teach.phase === "keep") {
             if (teach.acc >= 1.05) teachSignal = step.signal === "green" ? "red" : "green";
             else if (teach.acc >= 0.55) teachSignal = "yellow";
           }
@@ -1362,8 +1495,8 @@
         var lkNow = (!teaching && (mode === "playing" || mode === "paused")) ? lockAt(elapsed) : null;
         var lockActive = !!(lkNow && lkNow.phase === "active");
         var counting = !!(lkNow && lkNow.phase === "warn");
-        var teachCount = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "count";
-        var teachKeep = teaching && teachStep() && teachStep().kind === "lock" && teach.phase === "keep";
+        var teachCount = teaching && !teach.ready && teachStep() && teachStep().kind === "lock" && teach.phase === "count";
+        var teachKeep = teaching && !teach.ready && teachStep() && teachStep().kind === "lock" && teach.phase === "keep";
         preLock.hidden = !(counting || teachCount);
         lockCard.hidden = !(lockActive || teachKeep);
         if (counting) setText(preNum, String(Math.max(1, Math.ceil(lkNow.lock.start - elapsed - 1e-6))));
@@ -1375,6 +1508,13 @@
           setText(lockCount, "練習");
           paintLockWord(teach.captured);
         }
+        signal.classList.toggle("is-broken", lockActive || teachKeep);
+        var teachEvent = teaching && !teach.ready && teachStep() && teachStep().kind === "event";
+        var evShown = (!teaching && (mode === "playing" || (mode === "paused" && pausedFrom === "playing"))) ? eventAt(elapsed) : null;
+        eventCard.hidden = !(evShown || teachEvent);
+        if (evShown) paintEvent(evShown.event.id);
+        else if (teachEvent) paintEvent(teachStep().event);
+        car.classList.toggle("is-gust", (!!evShown && evShown.event.id === "wind") || (teachEvent && teachStep().event === "wind"));
 
         car.classList.toggle("is-moving", moving);
         car.classList.toggle("is-braking", braking);
@@ -1389,8 +1529,8 @@
             cardModel = {
               kind: "pause",
               kicker: "已暫停",
-              title: "鎖定中",
-              detail: lockSnap ? "唔準放手" : "唔準按",
+              title: "燈壞了",
+              detail: lockSnap ? "保持停止" : "保持通行",
               meta: "",
               btn: "繼續"
             };
@@ -1605,6 +1745,9 @@
         else if (mode === "won" || mode === "lost") freshChallenge();
       });
       replayBtn.addEventListener("click", function () { beginTeach(levelId); });
+      skipBtn.addEventListener("click", function () {
+        if (mode === "teaching") freshChallenge();
+      });
       menuBtn.addEventListener("click", function () { showMenu(); });
       startBtn.addEventListener("click", function () { beginChallenge(); });
       document.getElementById("teachMenu").addEventListener("click", function () { showMenu(); });
@@ -1708,6 +1851,12 @@
               lock: lockAt(elapsed) ? lockAt(elapsed).phase : "none",
               lockSnap: lockSnap,
               lockIndex: seenLock,
+              broken: signal.classList.contains("is-broken"),
+              event: (function () { var ev = eventAt(elapsed); return ev ? ev.event.id : ""; })(),
+              eventPhase: (function () { var ev = eventAt(elapsed); return ev ? ev.phase : "none"; })(),
+              eventAge: (function () { var ev = eventAt(elapsed); return ev ? elapsed - ev.event.t : 0; })(),
+              eventTitle: eventCard.hidden ? "" : eventTitle.textContent,
+              gust: car.classList.contains("is-gust"),
               bannerText: bannerText.textContent,
               cardTitle: cardTitle.textContent,
               cardDetail: cardDetail.textContent,
