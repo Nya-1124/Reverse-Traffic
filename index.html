@@ -152,14 +152,28 @@
     }
     .mini { width: 18px; height: 18px; flex: none; }
     #signal.is-broken .housing {
-      background: #241416;
-      outline: 3px dashed #e23b3b;
+      border: 4px solid #ff2d2d;
+      outline: 3px dashed #ff2d2d;
       outline-offset: 2px;
+      box-shadow: 0 0 0 2px #5c1216, 0 0 14px 2px #ff2d2d;
+      animation: breakPulse 0.85s ease-in-out infinite;
     }
-    #signal.is-broken .lamp.is-on { animation: flicker 0.45s steps(2, end) infinite; }
-    @keyframes flicker { 50% { filter: brightness(1.4); } }
+    #signal.is-broken .housing::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 6px;
+      width: 14px;
+      height: 18px;
+      margin-left: -7px;
+      pointer-events: none;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 18'><path d='M7 1 L4 8 H8 L5 17' fill='none' stroke='%23ff2d2d' stroke-width='2' stroke-linejoin='round'/></svg>") center/contain no-repeat;
+    }
+    @keyframes breakPulse {
+      50% { box-shadow: 0 0 0 3px #ff2d2d, 0 0 20px 3px #ff2d2d; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      #signal.is-broken .lamp.is-on { animation: none; }
+      #signal.is-broken .housing { animation: none; }
     }
     #rulePreview {
       margin: 4px 0 0;
@@ -253,6 +267,7 @@
       border: 0;
     }
     .housing {
+      position: relative;
       width: 70px;
       flex: none;
       padding: 7px;
@@ -837,7 +852,7 @@
 
       var TIME_LIMIT = 30;
       var RESUME_GRACE = 1.15;
-      var LOCK_ONSET = 0.3;
+      var LOCK_ONSET = 0.45;
       var EVENT_LEAD = 0.45;
       var STORAGE_KEY = "reverse-traffic-v1";
       var LEVELS = {
@@ -933,13 +948,13 @@
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" }
         ],
         lock: [
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈壞後要保持通行。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈壞後要保持停止。" }
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。紅邊亮起就保持通行。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。紅邊亮起就保持停止。" }
         ],
         mix: [
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" },
-          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。燈壞後要保持通行。" },
-          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。燈壞後要保持停止。" }
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "放開。紅邊亮起就保持通行。" },
+          { kind: "lock", force: true, signal: "red", rule: "normal", text: "按住。紅邊亮起就保持停止。" }
         ],
         event: [
           { kind: "release", signal: "green", rule: "normal", text: "放開，方塊往前走。" },
@@ -1296,20 +1311,23 @@
           }
           seenLock = -1;
           lockSnap = null;
-        } else if (!wasResume && seenLock !== lk.index) {
-          seenLock = lk.index;
-          lockSnap = braking;
+        } else if (!wasResume) {
+          if (seenLock !== lk.index) {
+            seenLock = lk.index;
+            lockSnap = null;
+          }
+          var lockAge = elapsed - lk.lock.start;
+          if (lockAge >= LOCK_ONSET && lockSnap === null) lockSnap = braking;
+          else if (lockSnap !== null && braking !== lockSnap) {
+            failLock(lockSnap);
+            return;
+          }
         }
         for (var ei = 0; ei < EVENTS.length; ei++) {
           var evEnd = EVENTS[ei].t + EVENTS[ei].dur;
           if (elapsed - dt < evEnd && elapsed >= evEnd) {
             graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, 0.45));
           }
-        }
-        var onset = lockActive && (elapsed - lk.lock.start) < LOCK_ONSET;
-        if (lockActive && !wasResume && lockSnap !== null && !onset && braking !== lockSnap) {
-          failLock(lockSnap);
-          return;
         }
         var evNow = eventAt(elapsed);
         var moving = !braking && !wasResume;
@@ -1358,24 +1376,13 @@
           if (teach.acc > (step.kind === "event" ? 0.45 : 0.35)) finishTeachStep();
         } else if (step.kind === "lock") {
           var wanted = !!step.force;
-          if (teach.phase === "choose") {
+          if (teach.phase === "choose" || teach.phase === "count") {
             if (braking === wanted) teach.acc += dt;
             else teach.acc = 0;
-            if (teach.acc > 0.3) {
-              teach.phase = "count";
-              teach.acc = 3;
-            }
-          } else if (teach.phase === "count") {
-            teach.acc -= dt;
-            if (teach.acc <= 0) {
-              if (braking !== wanted) {
-                teach.phase = "choose";
-                teach.acc = 0;
-              } else {
-                teach.captured = braking;
-                teach.phase = "keep";
-                teach.acc = 0;
-              }
+            if (teach.acc > 0.35) {
+              teach.captured = braking;
+              teach.phase = "keep";
+              teach.acc = 0;
             }
           } else if (braking === teach.captured) {
             teach.acc += dt;
@@ -1422,10 +1429,6 @@
       function warningText() {
         if (resumeGraceLeft > 0 && mode === "playing") return "反應時間";
         var lk = lockAt(elapsed);
-        if (mode === "playing" && lk && lk.phase === "warn") {
-          var n = Math.max(1, Math.ceil(lk.lock.start - elapsed - 1e-6));
-          return "燈快壞了 " + n;
-        }
         return "";
       }
 
@@ -1545,20 +1548,9 @@
         dashes.style.backgroundPositionY = dashOffset.toFixed(2) + "px";
         var lkNow = (!teaching && (mode === "playing" || mode === "paused")) ? lockAt(elapsed) : null;
         var lockActive = !!(lkNow && lkNow.phase === "active");
-        var counting = !!(lkNow && lkNow.phase === "warn");
-        var teachCount = teaching && !teach.ready && teachStep() && teachStep().kind === "lock" && teach.phase === "count";
         var teachKeep = teaching && !teach.ready && teachStep() && teachStep().kind === "lock" && teach.phase === "keep";
-        preLock.hidden = !(counting || teachCount);
-        lockCard.hidden = !(lockActive || teachKeep);
-        if (counting) setText(preNum, String(Math.max(1, Math.ceil(lkNow.lock.start - elapsed - 1e-6))));
-        if (teachCount) setText(preNum, String(Math.max(1, Math.ceil(teach.acc - 1e-6))));
-        if (lockActive && lkNow) {
-          setText(lockCount, formatSeconds(Math.max(0, lkNow.lock.end - elapsed)) + " 秒");
-          paintLockWord(lockSnap);
-        } else if (teachKeep) {
-          setText(lockCount, "練習");
-          paintLockWord(teach.captured);
-        }
+        preLock.hidden = true;
+        lockCard.hidden = true;
         signal.classList.toggle("is-broken", lockActive || teachKeep);
         var teachEvent = teaching && !teach.ready && teachStep() && teachStep().kind === "event" ? teachStep().event : "";
         var evShown = (!teaching && (mode === "playing" || (mode === "paused" && pausedFrom === "playing"))) ? eventVisual(elapsed) : null;
