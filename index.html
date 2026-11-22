@@ -168,7 +168,7 @@
       letter-spacing: 0.06em;
       color: #f6d98a;
     }
-    #preLock, #lockCard, #eventCard {
+    #preLock, #lockCard {
       position: absolute;
       left: 50%;
       top: 50%;
@@ -180,8 +180,6 @@
       margin: 0;
       text-align: center;
       box-sizing: border-box;
-    }
-    #preLock, #lockCard, #eventCard {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -194,16 +192,47 @@
       box-shadow: 0 0 0 3px #4a3410;
     }
     #preNum { font-size: 72px; line-height: 0.9; font-weight: 700; color: #ff2d2d; }
-    #lockKicker, #eventSub { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
-    #lockHold, #eventTitle { font-size: 36px; font-weight: 700; line-height: 1.05; color: #ff2d2d; }
-    #eventCard[data-kind="grandma"] { border-color: #f0b429; }
-    #eventCard[data-kind="spidey"] { border-color: #e23b3b; }
-    #eventCard[data-kind="wind"] { border-color: #7ec8e3; }
-    #eventTitle { color: #f4f1e6; font-size: 26px; }
-    .art { width: 148px; height: 36px; display: block; }
-    #lockCount, #eventSub { font-size: 16px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
-    #car.is-gust { transform: rotate(-8deg); }
-    #car.is-gust.is-braking { transform: rotate(-8deg) scale(1.04, 0.92); }
+    #lockKicker { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
+    #lockHold { font-size: 36px; font-weight: 700; line-height: 1.05; color: #ff2d2d; }
+    #lockCount { font-size: 16px; font-weight: 700; color: #f6d98a; font-variant-numeric: tabular-nums; }
+    #eventActor {
+      position: absolute;
+      left: 50%;
+      width: 128px;
+      height: 56px;
+      margin-left: -64px;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .scene { position: absolute; inset: 0; }
+    .scene svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .walk { transform-origin: 28px 28px; animation: walk 0.9s ease-in-out infinite alternate; }
+    .roll { animation: roll 0.7s linear infinite; }
+    .point { transform-origin: center; animation: pop 0.35s ease both; }
+    .gust { animation: sweep 0.6s linear infinite; }
+    .lyric {
+      position: absolute;
+      left: 68px;
+      top: 16px;
+      margin: 0;
+      padding: 1px 5px;
+      border-radius: 8px;
+      background: #fffdf8;
+      color: #171b1f;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+    @keyframes walk { from { transform: translateX(-16px); } to { transform: translateX(14px); } }
+    @keyframes roll { from { transform: translateX(0); } to { transform: translateX(36px); } }
+    @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes sweep { from { transform: translateX(-8px); } to { transform: translateX(10px); } }
+    #car.is-gust { transform: rotate(-11deg) translateX(7px); }
+    #car.is-gust.is-braking { transform: rotate(-11deg) translateX(7px) scale(1.04, 0.92); }
+    @media (prefers-reduced-motion: reduce) {
+      .walk, .roll, .point, .gust { animation: none; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .rule-inner, .rule-reverse, #ruleCard.is-reverse .rule-inner { transform: none; transition: opacity 0.2s linear; }
       .rule-face { backface-visibility: visible; transition: opacity 0.2s linear; }
@@ -621,7 +650,7 @@
       #replayBtn, #startBtn { height: 44px; margin-top: 6px; }
       #skipBtn, #teachMenu { height: 40px; font-size: 15px; }
       #preNum { font-size: 52px; }
-      #lockHold, #eventTitle { font-size: 28px; }
+      #lockHold { font-size: 28px; }
       #preLock, #lockCard { padding: 6px 8px; }
       .card { padding: 12px 14px 12px; }
       #cardTitle { font-size: 26px; }
@@ -629,10 +658,10 @@
     }
     @container (max-height: 260px) {
       #preNum { font-size: 44px; }
-      #lockHold, #eventTitle { font-size: 24px; }
-      #lockCount, #eventSub { font-size: 14px; }
-      .art { height: 28px; }
-      #preLock, #lockCard, #eventCard { padding: 4px 8px; gap: 2px; }
+      #lockHold { font-size: 24px; }
+      #lockCount { font-size: 14px; }
+      #preLock, #lockCard { padding: 4px 8px; gap: 2px; }
+      #eventActor { width: 112px; height: 48px; margin-left: -56px; }
     }
   </style>
 </head>
@@ -721,28 +750,41 @@
           <p id="lockHold">保持通行</p>
           <p id="lockCount">0.0 秒</p>
         </div>
-        <div id="eventCard" hidden data-kind="grandma">
-          <svg class="art" id="artGrandma" viewBox="0 0 148 36" aria-hidden="true">
-            <circle cx="18" cy="10" r="5" fill="#f3efe4"></circle>
-            <path d="M18 15 v10 M12 20 h12 M14 25 l-4 8 M22 25 l4 8" stroke="#f3efe4" stroke-width="2" fill="none"></path>
-            <circle cx="78" cy="28" r="5" fill="#f0b429"></circle>
-            <circle cx="100" cy="24" r="4" fill="#e23b3b"></circle>
-            <circle cx="122" cy="28" r="5" fill="#f0b429"></circle>
-          </svg>
-          <svg class="art" id="artSpidey" viewBox="0 0 148 36" aria-hidden="true" hidden>
-            <g fill="#e23b3b">
-              <circle cx="24" cy="14" r="7"></circle>
-              <circle cx="74" cy="14" r="7"></circle>
-              <circle cx="124" cy="14" r="7"></circle>
-            </g>
-            <path d="M31 16 L64 18 M84 16 L117 18 M31 22 L64 20 M84 22 L117 20" stroke="#7ec8e3" stroke-width="3" fill="none"></path>
-          </svg>
-          <svg class="art" id="artWind" viewBox="0 0 148 36" aria-hidden="true" hidden>
-            <path d="M8 10 h70 M8 18 h90 M8 26 h60" stroke="#7ec8e3" stroke-width="3" fill="none"></path>
-            <path d="M108 8 v16 a6 6 0 1 0 6-6" stroke="#f4f1e6" stroke-width="2" fill="none"></path>
-          </svg>
-          <p id="eventTitle">阿婆跌橙</p>
-          <p id="eventSub">快停</p>
+        <div id="eventActor" hidden>
+          <div class="scene" id="sceneGrandma">
+            <svg viewBox="0 0 128 56" aria-hidden="true">
+              <g class="walk">
+                <circle cx="28" cy="14" r="6" fill="#f3efe4"></circle>
+                <path d="M28 20 v12 M22 26 h12 M24 32 l-5 10 M32 32 l5 10" stroke="#f3efe4" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              </g>
+              <g class="roll">
+                <circle cx="62" cy="44" r="5" fill="#f0b429"></circle>
+                <circle cx="78" cy="40" r="4" fill="#e23b3b"></circle>
+                <circle cx="94" cy="46" r="5" fill="#f0b429"></circle>
+              </g>
+            </svg>
+          </div>
+          <div class="scene" id="sceneSpidey" hidden>
+            <svg viewBox="0 0 128 56" aria-hidden="true">
+              <g class="point">
+                <circle cx="24" cy="18" r="7" fill="#e23b3b"></circle>
+                <circle cx="64" cy="16" r="7" fill="#c81e1e"></circle>
+                <circle cx="104" cy="18" r="7" fill="#e23b3b"></circle>
+                <path d="M31 22 L56 20 M72 20 L97 22 M31 28 L54 24 M74 24 L97 28" stroke="#7ec8e3" stroke-width="3" fill="none" stroke-linecap="round"></path>
+                <path d="M24 26 v12 M64 24 v14 M104 26 v12" stroke="#e23b3b" stroke-width="3" fill="none"></path>
+              </g>
+            </svg>
+          </div>
+          <div class="scene" id="sceneWind" hidden>
+            <svg viewBox="0 0 128 56" aria-hidden="true">
+              <g class="gust">
+                <path d="M4 18 h46 M4 28 h58 M4 38 h40" stroke="#7ec8e3" stroke-width="3" fill="none" stroke-linecap="round"></path>
+              </g>
+              <circle cx="92" cy="30" r="6" fill="#f3efe4"></circle>
+              <path d="M92 36 v10 M86 42 h12" stroke="#f3efe4" stroke-width="2.2" fill="none"></path>
+            </svg>
+            <p class="lyric">這似季候風</p>
+          </div>
         </div>
       </div>
       <div id="pedal" aria-live="polite">
@@ -796,6 +838,7 @@
       var TIME_LIMIT = 30;
       var RESUME_GRACE = 1.15;
       var LOCK_ONSET = 0.3;
+      var EVENT_LEAD = 0.45;
       var STORAGE_KEY = "reverse-traffic-v1";
       var LEVELS = {
         normal: {
@@ -925,11 +968,10 @@
       var rulePreview = document.getElementById("rulePreview");
       var lockCard = document.getElementById("lockCard");
       var lockHold = document.getElementById("lockHold");
-      var eventCard = document.getElementById("eventCard");
-      var eventTitle = document.getElementById("eventTitle");
-      var artGrandma = document.getElementById("artGrandma");
-      var artSpidey = document.getElementById("artSpidey");
-      var artWind = document.getElementById("artWind");
+      var eventActor = document.getElementById("eventActor");
+      var sceneGrandma = document.getElementById("sceneGrandma");
+      var sceneSpidey = document.getElementById("sceneSpidey");
+      var sceneWind = document.getElementById("sceneWind");
       var skipBtn = document.getElementById("skipBtn");
       var lockCount = document.getElementById("lockCount");
       var banner = document.getElementById("banner");
@@ -1172,6 +1214,14 @@
         return null;
       }
 
+      function eventVisual(t) {
+        for (var i = 0; i < EVENTS.length; i++) {
+          var ev = EVENTS[i];
+          if (t >= ev.t - EVENT_LEAD && t < ev.t + ev.dur) return EVENTS[i];
+        }
+        return null;
+      }
+
       function failMove(phase) {
         mode = "lost";
         var detail = "燈號不符合目前規則，你還在前進。";
@@ -1376,8 +1426,6 @@
           var n = Math.max(1, Math.ceil(lk.lock.start - elapsed - 1e-6));
           return "燈快壞了 " + n;
         }
-        var evWarn = eventAt(elapsed);
-        if (mode === "playing" && evWarn) return evWarn.phase === "react" ? "反應時間" : "快停";
         return "";
       }
 
@@ -1398,23 +1446,26 @@
         setText(lockHold, held ? "保持停止" : "保持通行");
       }
 
-      function showArt(el, on) {
-        if (on) {
-          el.removeAttribute("hidden");
-          el.style.display = "block";
-        } else {
-          el.setAttribute("hidden", "");
-          el.style.display = "none";
-        }
+      function showScene(el, on) {
+        if (on) el.removeAttribute("hidden");
+        else el.setAttribute("hidden", "");
       }
 
-      function paintEvent(id) {
-        var copy = EVENT_COPY[id] || EVENT_COPY.grandma;
-        eventCard.dataset.kind = id;
-        setText(eventTitle, copy.title);
-        showArt(artGrandma, id === "grandma");
-        showArt(artSpidey, id === "spidey");
-        showArt(artWind, id === "wind");
+      function paintActor(id) {
+        eventActor.dataset.kind = id;
+        showScene(sceneGrandma, id === "grandma");
+        showScene(sceneSpidey, id === "spidey");
+        showScene(sceneWind, id === "wind");
+      }
+
+      function placeActor() {
+        var laneH = lane.clientHeight || 0;
+        var travel = Math.max(0, laneH - 34 - 36);
+        var carBottom = 8 + (Math.max(0, Math.min(100, progress)) / 100) * travel;
+        var nose = carBottom + 36;
+        var want = nose + 8;
+        var maxBottom = Math.max(nose, laneH - 60);
+        eventActor.style.bottom = Math.max(8, Math.min(want, maxBottom)) + "px";
       }
 
       function movingNow() {
@@ -1509,12 +1560,15 @@
           paintLockWord(teach.captured);
         }
         signal.classList.toggle("is-broken", lockActive || teachKeep);
-        var teachEvent = teaching && !teach.ready && teachStep() && teachStep().kind === "event";
-        var evShown = (!teaching && (mode === "playing" || (mode === "paused" && pausedFrom === "playing"))) ? eventAt(elapsed) : null;
-        eventCard.hidden = !(evShown || teachEvent);
-        if (evShown) paintEvent(evShown.event.id);
-        else if (teachEvent) paintEvent(teachStep().event);
-        car.classList.toggle("is-gust", (!!evShown && evShown.event.id === "wind") || (teachEvent && teachStep().event === "wind"));
+        var teachEvent = teaching && !teach.ready && teachStep() && teachStep().kind === "event" ? teachStep().event : "";
+        var evShown = (!teaching && (mode === "playing" || (mode === "paused" && pausedFrom === "playing"))) ? eventVisual(elapsed) : null;
+        var actorId = evShown ? evShown.id : teachEvent;
+        eventActor.hidden = !actorId;
+        if (actorId) {
+          paintActor(actorId);
+          placeActor();
+        }
+        car.classList.toggle("is-gust", actorId === "wind");
 
         car.classList.toggle("is-moving", moving);
         car.classList.toggle("is-braking", braking);
@@ -1855,7 +1909,12 @@
               event: (function () { var ev = eventAt(elapsed); return ev ? ev.event.id : ""; })(),
               eventPhase: (function () { var ev = eventAt(elapsed); return ev ? ev.phase : "none"; })(),
               eventAge: (function () { var ev = eventAt(elapsed); return ev ? elapsed - ev.event.t : 0; })(),
-              eventTitle: eventCard.hidden ? "" : eventTitle.textContent,
+              eventTitle: (function () {
+                var shown = eventVisual(elapsed);
+                var id = shown ? shown.id : "";
+                if (!id && (mode === "teaching" || pausedFrom === "teaching") && teachStep() && teachStep().kind === "event") id = teachStep().event;
+                return id && EVENT_COPY[id] ? EVENT_COPY[id].title : "";
+              })(),
               gust: car.classList.contains("is-gust"),
               bannerText: bannerText.textContent,
               cardTitle: cardTitle.textContent,
