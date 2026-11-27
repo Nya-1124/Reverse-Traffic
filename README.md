@@ -6,7 +6,7 @@ Choose 紅綠燈, 倒轉地球, 你個嘢壞咗, or 喂喂喂 嚇死人咩 for a
 
 ## Controls
 
-- Phone or mouse: hold the road or the big 按住煞車 pad. Release to move. 鳴笛 sits on the pad’s corner and does not brake.
+- Phone or mouse: hold the road or the big 按住煞車 pad. Release to move. 響咹 sits on the pad’s corner and does not brake.
 - Keyboard: hold Space to brake. H honks. Esc pauses. Space or Enter resumes, or starts 再來一局 from the result.
 - One honk while 阿婆跌橙 is on screen makes her hurry and shortens that stop. Two honks in ten seconds are safe; a third or later honk in that window can end the run as a nuisance.
 - Leaving the tab or the window pauses the round and releases the brake. Tap 繼續 to resume. The block stays still through a short grace so coming back is not an instant out.

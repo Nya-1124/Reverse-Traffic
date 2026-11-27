@@ -606,8 +606,7 @@
   function horn() {
     if (!canPlay()) return;
     var t = ctx.currentTime;
-    tone(t, 370, 0.32, "sawtooth", 0.11, sfxGain, false);
-    tone(t, 466, 0.32, "square", 0.09, sfxGain, false);
+    glide(t, 360, 230, 0.08, "square", 0.18, sfxGain, false);
   }
 
   function eventSting(id) {

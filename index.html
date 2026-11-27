@@ -732,21 +732,12 @@
       gap: 1px;
       line-height: 1;
       touch-action: manipulation;
-      --cool: 0;
     }
     #hornBtn .horn-mark { font-size: 22px; font-weight: 700; }
-    #hornBtn .horn-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; }
+    #hornBtn .horn-label { font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
     #hornBtn.is-honk { transform: scale(0.94); background: #f6d98a; color: #171b1f; }
     #hornBtn.is-warn { border-color: #e6a817; color: #f6d98a; }
     #hornBtn.is-hot { border-color: #e23b3b; color: #ffb4b4; }
-    #hornBtn::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: conic-gradient(rgba(7, 8, 9, 0.62) calc(var(--cool) * 360deg), transparent 0);
-      pointer-events: none;
-    }
 
     #hint {
       color: #d7dee4;
@@ -1298,13 +1289,13 @@
         <div class="pedal-title">按住煞車</div>
         <div class="pedal-sub" id="pedalSub">放開前進</div>
       </div>
-      <button id="hornBtn" type="button" data-no-brake aria-label="鳴笛" aria-keyshortcuts="H">
+      <button id="hornBtn" type="button" data-no-brake aria-label="響咹" aria-keyshortcuts="H">
         <span class="horn-mark" aria-hidden="true">咹</span>
-        <span class="horn-label">鳴笛</span>
+        <span class="horn-label">響咹</span>
       </button>
     </div>
 
-    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。右下角可鳴笛。<span class="kb">空白鍵煞車，H 鳴笛，Esc 暫停。</span></p>
+    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。右下角可響咹。<span class="kb">空白鍵煞車，H 響咹，Esc 暫停。</span></p>
 
     <div id="teachBar" hidden data-no-brake>
       <p id="teachText">先練習這個關卡。</p>
@@ -2836,9 +2827,7 @@
         audioCue("fail");
       }
 
-      var HORN_COOL = 1.5;
       var HORN_WINDOW = 10;
-      var hornReadyAt = 0;
       var hornTimes = [];
       var hurryMap = {};
       var honkUntil = 0;
@@ -2848,7 +2837,6 @@
       var honkFx = document.getElementById("honkFx");
 
       function resetHorn() {
-        hornReadyAt = 0;
         hornTimes = [];
         hurryMap = {};
         honkUntil = 0;
@@ -2904,19 +2892,18 @@
           var ctx = playHornSound.ctx;
           if (ctx.state === "suspended" && ctx.resume) ctx.resume();
           var t = ctx.currentTime;
-          [370, 466].forEach(function (freq) {
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
-            osc.type = "square";
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.0001, t);
-            gain.gain.exponentialRampToValueAtTime(0.06, t + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(t);
-            osc.stop(t + 0.28);
-          });
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.type = "square";
+          osc.frequency.setValueAtTime(360, t);
+          osc.frequency.exponentialRampToValueAtTime(230, t + 0.07);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.14, t + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.1);
         } catch (err) {}
       }
 
@@ -2939,9 +2926,7 @@
       function tryHorn() {
         if (mode !== "playing" && mode !== "teaching") return false;
         var nowMs = performance.now();
-        if (nowMs < hornReadyAt) return false;
-        hornReadyAt = nowMs + HORN_COOL * 1000;
-        honkUntil = nowMs + 480;
+        honkUntil = nowMs + 280;
         playHornSound();
         var teaching = mode === "teaching";
         var actorId = "";
@@ -3353,8 +3338,6 @@
           if (!honkFx.hidden) honkFx.style.bottom = ((parseFloat(car.style.bottom) || 8) + 38) + "px";
         }
         if (hornBtn) {
-          var cool = Math.max(0, hornReadyAt - performance.now()) / (HORN_COOL * 1000);
-          hornBtn.style.setProperty("--cool", cool.toFixed(3));
           hornBtn.classList.toggle("is-honk", performance.now() < honkUntil);
           var honks = (mode === "playing" || (mode === "paused" && pausedFrom === "playing")) ? hornCount(elapsed) : 0;
           hornBtn.classList.toggle("is-warn", honks === 2);
@@ -3670,7 +3653,6 @@
           return;
         }
         if (event.code === "KeyH") {
-          if (event.repeat) return;
           if (mode === "playing" || mode === "teaching") {
             event.preventDefault();
             tryHorn();
@@ -3910,7 +3892,7 @@
             };
           },
           setHell: function (on) { setHellMode(!!on); },
-          honk: function () { hornReadyAt = 0; var ok = tryHorn(); return { ok: ok, mode: mode, count: hornCount(elapsed), law: result && result.law ? result.law : "", hurry: eventActor.classList.contains("is-hurry"), look: eventActor.classList.contains("is-look") }; },
+          honk: function () { var ok = tryHorn(); return { ok: ok, mode: mode, count: hornCount(elapsed), law: result && result.law ? result.law : "", hurry: eventActor.classList.contains("is-hurry"), look: eventActor.classList.contains("is-look") }; },
           levelIds: function () { return Object.keys(LEVELS); },
           hellOn: function () { return hellMode; },
           scores: function () {
@@ -4048,7 +4030,6 @@
               })(),
               gust: car.classList.contains("is-gust"),
               hornCount: hornCount(elapsed),
-              hornCool: Math.max(0, hornReadyAt - performance.now()) / 1000,
               grandmaHurry: eventActor.classList.contains("is-hurry"),
               spideyLook: eventActor.classList.contains("is-look"),
               honkShown: !!(honkFx && !honkFx.hidden),
