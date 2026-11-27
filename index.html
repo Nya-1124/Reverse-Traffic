@@ -497,12 +497,147 @@
     #car.is-braking { transform: scale(1.04, 0.92); }
     #car.is-braking .lights i { background: var(--red); box-shadow: 0 0 8px var(--red); }
     #car.is-moving { animation: bob 0.45s ease-in-out infinite; }
+    #car.is-sliding { animation: drift 0.42s ease-in-out infinite; }
+    #car .reflect {
+      display: none;
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      top: 100%;
+      height: 14px;
+      margin-top: 3px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(232, 240, 246, 0.55), rgba(232, 240, 246, 0) 72%);
+      pointer-events: none;
+    }
+    #car .spray {
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      bottom: -2px;
+      height: 18px;
+      pointer-events: none;
+      opacity: 0;
+    }
+    #car .spray i {
+      position: absolute;
+      bottom: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(232, 242, 248, 0.95);
+      box-shadow: 0 9px 0 -1px rgba(210, 228, 240, 0.55), 0 16px 0 -2px rgba(190, 214, 230, 0.35);
+    }
+    #car.is-sliding .spray { opacity: 1; }
+    #car.is-sliding .spray i { animation: tyreSpray 0.42s linear infinite; }
+    #car .spray i:nth-child(1) { left: 1px; --dx: -8px; }
+    #car .spray i:nth-child(2) { left: 7px; --dx: -3px; animation-delay: 0.12s; }
+    #car .spray i:nth-child(3) { right: 1px; --dx: 8px; animation-delay: 0.05s; }
+    #car .spray i:nth-child(4) { right: 7px; --dx: 3px; animation-delay: 0.18s; }
     @keyframes bob {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-2px); }
     }
+    @keyframes drift {
+      0%, 100% { transform: translateX(-7px) rotate(-8deg) scale(1.05, 0.92); }
+      50% { transform: translateX(6px) rotate(5deg) scale(1.05, 0.92); }
+    }
+    @keyframes tyreSpray {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.95; }
+      100% { transform: translate(var(--dx), 12px) scale(0.35); opacity: 0; }
+    }
+    #puddles {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 34px 11px at 28% 68%, rgba(198, 220, 234, 0.34), transparent 72%),
+        radial-gradient(ellipse 46px 13px at 70% 42%, rgba(176, 206, 224, 0.28), transparent 72%),
+        radial-gradient(ellipse 24px 8px at 46% 24%, rgba(210, 228, 238, 0.24), transparent 72%);
+    }
+    #rain {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .rain-streaks {
+      position: absolute;
+      left: -30%;
+      width: 160%;
+      top: -60%;
+      height: 220%;
+      background-image: repeating-linear-gradient(
+        98deg,
+        transparent 0 16px,
+        rgba(214, 230, 242, 0.0) 16px,
+        rgba(226, 238, 246, 0.55) 17px,
+        transparent 18px
+      );
+      animation: rainFall 0.7s linear infinite;
+    }
+    .rain-streaks.near {
+      background-image: repeating-linear-gradient(
+        104deg,
+        transparent 0 26px,
+        rgba(255, 255, 255, 0.0) 26px,
+        rgba(255, 255, 255, 0.72) 27.5px,
+        transparent 29px
+      );
+      animation-duration: 0.42s;
+      opacity: 0.8;
+    }
+    .wiper {
+      position: absolute;
+      bottom: 10px;
+      width: 46%;
+      height: 5px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(236, 244, 248, 0.15), rgba(244, 248, 252, 0.88));
+      box-shadow: 0 0 8px rgba(220, 236, 246, 0.35);
+    }
+    .wiper-l { left: 10px; transform-origin: left center; animation: wipeL 1.35s ease-in-out infinite; }
+    .wiper-r { right: 10px; transform-origin: right center; animation: wipeR 1.35s ease-in-out infinite; }
+    @keyframes rainFall {
+      from { transform: translateY(-8%); }
+      to { transform: translateY(8%); }
+    }
+    @keyframes wipeL {
+      0%, 10% { transform: rotate(-58deg); }
+      46%, 60% { transform: rotate(-6deg); }
+      100% { transform: rotate(-58deg); }
+    }
+    @keyframes wipeR {
+      0%, 10% { transform: rotate(58deg); }
+      46%, 60% { transform: rotate(6deg); }
+      100% { transform: rotate(58deg); }
+    }
+    #lane.is-wet {
+      background:
+        linear-gradient(180deg, rgba(186, 214, 230, 0.2), transparent 32%),
+        linear-gradient(90deg, #101820 0%, #1a2834 42%, #2a3e4e 50%, #182630 58%, #101820 100%);
+      border-color: #3d5162;
+    }
+    #lane.is-wet::before,
+    #lane.is-wet::after {
+      background: linear-gradient(#f7fbff, #9eb4c4);
+      box-shadow: 0 0 10px rgba(190, 220, 236, 0.45);
+    }
+    #lane.is-wet[data-rule="reverse"]::before,
+    #lane.is-wet[data-rule="reverse"]::after {
+      background: repeating-linear-gradient(135deg, #d5e4ee 0 5px, #142028 5px 10px);
+    }
+    #lane.is-wet #dashes {
+      opacity: 0.95;
+      filter: drop-shadow(0 0 4px rgba(220, 236, 246, 0.65));
+    }
+    #lane.is-wet #car .reflect { display: block; }
     @media (prefers-reduced-motion: reduce) {
       #car.is-moving { animation: none; }
+      #car.is-sliding { animation: none; transform: translateX(6px) rotate(6deg) scale(1.05, 0.92); }
+      .rain-streaks, .wiper, #car .spray i { animation: none; }
     }
 
     #pedal {
@@ -977,9 +1112,18 @@
         <div class="finish"><span>終點</span></div>
         <div id="laneBadge" aria-hidden="true"><span></span></div>
         <div id="dashes"></div>
+        <div id="puddles" hidden></div>
         <div id="car" aria-hidden="true">
           <div class="nose"></div>
           <div class="lights"><i></i><i></i></div>
+          <div class="reflect"></div>
+          <div class="spray" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div id="rain" hidden>
+          <div class="rain-streaks far"></div>
+          <div class="rain-streaks near"></div>
+          <div class="wiper wiper-l"></div>
+          <div class="wiper wiper-r"></div>
         </div>
         <div id="preLock" hidden>
           <p>燈快壞了</p>
@@ -1115,6 +1259,10 @@
           <div class="menu-slot">
             <button type="button" data-level="challenge">頂～邊有可能</button>
             <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
+          </div>
+          <div class="menu-slot">
+            <button type="button" data-level="rain">加下玩漂移咩</button>
+            <p class="lvl-meta"><span class="lvl-best" id="bestRain">尚無紀錄</span><span class="lvl-limit">35 秒</span></p>
           </div>
         </div>
       </div>
@@ -1290,6 +1438,28 @@
             { t: 24.4, signal: "green", rule: "reverse" },
             { t: 27.6, signal: "green", rule: "normal" }
           ]
+        },
+        rain: {
+          name: "加下玩漂移咩", yellow: 0.75, react: 0.42, limit: 35, move: 18.7,
+          slide: { accel: 5.8, decel: 1.52 },
+          locks: [
+            { warn: 16.75, start: 16.75, end: 20.05 }
+          ],
+          events: [],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4.8, signal: "red", rule: "normal" },
+            { t: 7.6, signal: "green", rule: "normal" },
+            { t: 10.7, signal: "red", rule: "normal" },
+            { t: 13.6, signal: "green", rule: "reverse" },
+            { t: 16.4, signal: "red", rule: "reverse" },
+            { t: 18.2, signal: "green", rule: "reverse" },
+            { t: 19.5, signal: "red", rule: "reverse" },
+            { t: 22.8, signal: "red", rule: "normal" },
+            { t: 25.8, signal: "green", rule: "normal" },
+            { t: 28.4, signal: "red", rule: "reverse" },
+            { t: 31.3, signal: "green", rule: "reverse" }
+          ]
         }
       };
       var EVENT_COPY = {
@@ -1327,6 +1497,12 @@
         flipfest: [
           { kind: "release", signal: "green", rule: "normal", text: "正常：放開，方塊往前走。" },
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：同一盞綠燈要停。規則會轉得密。" }
+        ],
+        rain: [
+          { kind: "release", signal: "green", rule: "normal", text: "濕路放開就行。" },
+          { kind: "brake", signal: "red", rule: "normal", text: "要早啲按住。按住之後仍然會溜。" },
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停，一樣要早煞。" },
+          { kind: "lock", force: false, signal: "red", rule: "reverse", text: "紅邊亮起就保持通行。" }
         ]
       };
       TEACH.challenge = TEACH.final;
@@ -1336,6 +1512,8 @@
       var LOCKS = [];
       var EVENTS = [];
       var PHASES = [];
+      var SLIDE = null;
+      var speed = 0;
       var levelId = "normal";
 
       var app = document.getElementById("app");
@@ -1367,6 +1545,8 @@
       var progressText = document.getElementById("progressText");
       var lane = document.getElementById("lane");
       var dashes = document.getElementById("dashes");
+      var puddles = document.getElementById("puddles");
+      var rainFx = document.getElementById("rain");
       var car = document.getElementById("car");
       var pedal = document.getElementById("pedal");
       var pedalSub = document.getElementById("pedalSub");
@@ -1432,7 +1612,7 @@
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var SCORE_KEYS = ["normal", "reverse", "flipfest", "lock", "mix", "event", "final", "challenge"];
+      var SCORE_KEYS = ["normal", "reverse", "flipfest", "lock", "mix", "event", "final", "challenge", "rain"];
       var MENU_BEST = {
         normal: "bestNormal",
         reverse: "bestReverse",
@@ -1441,7 +1621,8 @@
         mix: "bestMix",
         event: "bestEvent",
         final: "bestFinal",
-        challenge: "bestChallenge"
+        challenge: "bestChallenge",
+        rain: "bestRain"
       };
       var bests = {};
       SCORE_KEYS.forEach(function (key) { bests[key] = blankScore(); });
@@ -1511,6 +1692,13 @@
           events.push(ev);
         }
         out.events = events;
+        if (spec.slide) {
+          // Grace is floored, so the slide shortens a little more than the clock.
+          out.slide = {
+            accel: spec.slide.accel * HELL_SPEED,
+            decel: spec.slide.decel * HELL_SPEED * 1.4
+          };
+        }
         return out;
       }
       function limitLabel(seconds) {
@@ -2237,6 +2425,8 @@
         MOVE_RATE = 100 / spec.move;
         LOCKS = spec.locks || [];
         EVENTS = spec.events || [];
+        SLIDE = spec.slide || null;
+        speed = 0;
         TIME_LIMIT = spec.limit || 30;
         PHASES = [];
         for (var i = 0; i < spec.lights.length; i++) {
@@ -2662,7 +2852,13 @@
           }
         }
         var evNow = eventAt(elapsed);
-        var moving = !braking && !wasResume;
+        if (!SLIDE) speed = (!braking && !wasResume) ? 1 : 0;
+        else if (wasResume) speed = 0;
+        else if (braking) {
+          speed = Math.max(0, speed - SLIDE.decel * dt);
+          if (speed < 0.02) speed = 0;
+        } else speed = Math.min(1, speed + SLIDE.accel * dt);
+        var moving = speed > 0;
         if (evNow && evNow.phase === "stop" && !wasResume && moving) {
           failEvent(evNow.event);
           return;
@@ -2674,8 +2870,8 @@
           return;
         }
         if (moving) {
-          progress += MOVE_RATE * dt;
-          dashOffset = (dashOffset + 80 * hellPace() * dt) % 22;
+          progress += MOVE_RATE * speed * dt;
+          dashOffset = (dashOffset + 80 * speed * hellPace() * dt) % 22;
           if (progress >= 100) {
             progress = 100;
             win();
@@ -2803,8 +2999,13 @@
         eventActor.style.bottom = Math.max(8, Math.min(want, maxBottom)) + "px";
       }
 
+      function slidingNow() {
+        return !!(SLIDE && braking && speed > 0.045 && resumeGraceLeft <= 0 && (mode === "playing" || (mode === "paused" && pausedFrom === "playing")));
+      }
+
       function movingNow() {
         if (mode === "teaching") return !braking;
+        if (SLIDE) return mode === "playing" && !braking && resumeGraceLeft <= 0 && speed > 0.045;
         return mode === "playing" && !braking && resumeGraceLeft <= 0;
       }
 
@@ -2896,10 +3097,17 @@
         }
         car.classList.toggle("is-gust", actorId === "wind");
 
-        car.classList.toggle("is-moving", moving);
+        var rainy = levelId === "rain" && mode !== "menu";
+        var sliding = slidingNow();
+        lane.classList.toggle("is-wet", rainy);
+        rainFx.hidden = !rainy;
+        puddles.hidden = !rainy;
+        app.dataset.weather = rainy ? "rain" : "";
+        car.classList.toggle("is-moving", moving && !sliding);
+        car.classList.toggle("is-sliding", sliding);
         car.classList.toggle("is-braking", braking);
         pedal.classList.toggle("is-held", braking);
-        setText(pedalSub, braking ? "煞車中" : moving ? "前進中" : "放開前進");
+        setText(pedalSub, sliding ? "打滑中" : braking ? "煞車中" : moving ? "前進中" : "放開前進");
         pauseBtn.hidden = mode !== "playing" && mode !== "teaching";
 
         var cardModel = null;
@@ -3351,6 +3559,10 @@
             levelId = "challenge";
             freshChallenge();
           },
+          startLevel: function (id) {
+            levelId = id;
+            freshChallenge();
+          },
           autoLevel: function (id, profile) {
             levelId = id;
             if (id === "challenge") {
@@ -3367,6 +3579,8 @@
                 : (profile && profile.react != null)
                   ? { event: profile.react, lamp: profile.react, yellowStop: profile.react, release: profile.react, yellowGo: profile.react }
                   : { event: 0.28, lamp: 0.28, yellowStop: 0.12, release: 0.26, yellowGo: 0.22 };
+            if (profile && profile.yellowStop != null) delays.yellowStop = profile.yellowStop;
+            if (profile && profile.lamp != null) delays.lamp = profile.lamp;
             var steps = 0;
             while (mode === "playing" && steps < 4500) {
               var info = phaseAt(elapsed);
@@ -3397,7 +3611,9 @@
               seed: levelId === "challenge" ? challengeSeed : levelId === "mix" ? mixSeed : finalSeed,
               limit: roundLimit(),
               result: result ? result.kind : "",
-              detail: result ? result.detail : ""
+              detail: result ? result.detail : "",
+              law: result && result.law ? result.law : "",
+              reason: result && result.law && LAW[result.law] ? LAW[result.law].reason : ""
             };
           },
           setHell: function (on) { setHellMode(!!on); },
@@ -3487,6 +3703,9 @@
               required: requiredOf(phase),
               safe: !!phase.safe,
               braking: braking,
+              speed: Math.round(speed * 1000) / 1000,
+              sliding: car.classList.contains("is-sliding"),
+              wet: lane.classList.contains("is-wet"),
               moving: movingNow(),
               warning: mode === "playing" ? warningText() : "",
               protected: !!phase.safe || phase.signal === "yellow" || resumeGraceLeft > 0,
