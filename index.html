@@ -830,6 +830,78 @@
       #preLock, #lockCard { padding: 4px 8px; gap: 2px; }
       #eventActor { width: 112px; height: 48px; margin-left: -56px; }
     }
+    .hell-badge {
+      margin: 0;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #9d1f2c, #e25822);
+      color: #fff6e8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 10px rgba(226, 59, 59, 0.55);
+    }
+    #hellToggle {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 48px;
+      height: auto;
+      margin: 0 0 12px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 2px solid #9d1f2c;
+      background:
+        radial-gradient(circle at 16% 78%, rgba(240, 180, 41, 0.28), transparent 42%),
+        linear-gradient(90deg, #2a0c0e, #4a1216);
+      color: #ffd7c2;
+      box-shadow: 3px 3px 0 #7a1218;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: left;
+    }
+    #hellToggle[aria-pressed="true"] {
+      border-color: #ffb020;
+      background:
+        radial-gradient(circle at 14% 72%, #ffe08a, transparent 34%),
+        radial-gradient(circle at 30% 36%, #ff6a2a, transparent 46%),
+        linear-gradient(90deg, #8a120c, #e23b3b 55%, #ff7a18);
+      color: #fff8ef;
+      box-shadow: 0 0 18px rgba(226, 59, 59, 0.55), 3px 3px 0 #6a0c08;
+    }
+    .hell-fire {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      border-radius: 0 80% 0 80%;
+      background: linear-gradient(135deg, #ffe08a, #ff7a18 42%, #e23b3b);
+      transform: rotate(45deg);
+      box-shadow: 0 0 8px #ff6a2a;
+    }
+    #hellToggle[aria-pressed="false"] .hell-fire { opacity: 0.55; box-shadow: none; }
+    #hellToggle[aria-pressed="true"] .hell-fire { animation: hellFlicker 0.45s ease-in-out infinite; }
+    @keyframes hellFlicker {
+      50% { transform: rotate(45deg) scale(1.12); box-shadow: 0 0 10px #ffe08a; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #hellToggle[aria-pressed="true"] .hell-fire { animation: none; }
+    }
+    .hell-name { flex: 1; }
+    .hell-mult { flex: none; letter-spacing: 0.04em; }
+    .hell-state {
+      flex: none;
+      min-width: 36px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.28);
+      font-size: 14px;
+      text-align: center;
+    }
+    @media (max-height: 760px) {
+      #hellToggle { min-height: 40px; margin-bottom: 8px; padding: 6px 10px; font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -841,6 +913,7 @@
         <h1>反方向紅綠燈</h1>
       </div>
       <div class="hud-right">
+        <p class="hell-badge" id="hellBadge" hidden>地獄 x2</p>
         <p class="timer" id="timer"><small id="timeCaption">剩餘</small><span id="timeValue">30.0</span><span class="sec">秒</span></p>
         <button id="pauseBtn" type="button" data-no-brake>暫停</button>
       </div>
@@ -1015,6 +1088,12 @@
 
     <div id="menu" data-no-brake data-page="1">
       <h2>選擇關卡</h2>
+      <button type="button" id="hellToggle" role="switch" aria-pressed="false">
+        <span class="hell-fire" aria-hidden="true"></span>
+        <span class="hell-name">地獄模式</span>
+        <span class="hell-mult">×2</span>
+        <span class="hell-state" id="hellState">關</span>
+      </button>
       <div id="menuPages">
         <div class="menu-page" data-menu-page="1">
           <button type="button" data-level="normal">紅綠燈</button>
@@ -1087,6 +1166,11 @@
       var EVENT_LEAD = 0.45;
       var STORAGE_KEY = "reverse-traffic-v1";
       var MENU_PAGE_KEY = "reverse-traffic-menu-page";
+      var HELL_KEY = "reverse-traffic-hell";
+      var HELL_SPEED = 2;
+      var HELL_FLOOR_YELLOW = 0.25;
+      var HELL_FLOOR_GRACE = 0.25;
+      var HELL_FLOOR_EVENT = 0.35;
       var LEVELS = {
         normal: {
           name: "紅綠燈", yellow: 0.65, react: 0.38, move: 12.91, locks: [],
@@ -1318,6 +1402,9 @@
       var preLock = document.getElementById("preLock");
       var preNum = document.getElementById("preNum");
       var timeCaption = document.getElementById("timeCaption");
+      var hellToggle = document.getElementById("hellToggle");
+      var hellState = document.getElementById("hellState");
+      var hellBadge = document.getElementById("hellBadge");
 
       var debug = new URLSearchParams(location.search).has("debug");
       var loopPaused = debug;
@@ -1360,7 +1447,93 @@
       SCORE_KEYS.forEach(function (key) { bests[key] = blankScore(); });
       var menuPage = 1;
       var menuIgnoreClick = false;
-      function slot() { return bests[levelId]; }
+      var hellMode = false;
+      function scoreKey(id) { return hellMode ? id + "_hell" : id; }
+      function slot() {
+        var key = scoreKey(levelId);
+        if (!bests[key]) bests[key] = blankScore();
+        return bests[key];
+      }
+      function hellPace() { return hellMode ? HELL_SPEED : 1; }
+      function simScale(seconds) {
+        if (!hellMode) return seconds;
+        return Math.max(HELL_FLOOR_GRACE, round3(seconds / HELL_SPEED));
+      }
+      function copyFields(src) {
+        var out = {};
+        for (var k in src) if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+        return out;
+      }
+      // One multiplier for every level. Yellow and grace stay >= 0.25s; event react stays >= 0.35s.
+      function presentSpec(spec) {
+        if (!hellMode || !spec) return spec;
+        var out = copyFields(spec);
+        var yellow = Math.max(HELL_FLOOR_YELLOW, round3((spec.yellow || 0.5) / HELL_SPEED));
+        var react = Math.max(HELL_FLOOR_GRACE, round3((spec.react == null ? 0.35 : spec.react) / HELL_SPEED));
+        out.yellow = yellow;
+        out.react = react;
+        out.limit = round3((spec.limit || 30) / HELL_SPEED);
+        out.move = (spec.move || 13.2) / HELL_SPEED;
+        var lights = [];
+        var srcLights = spec.lights || [];
+        for (var i = 0; i < srcLights.length; i++) {
+          var light = copyFields(srcLights[i]);
+          if (i > 0) light.t = round3(srcLights[i].t / HELL_SPEED);
+          lights.push(light);
+        }
+        for (var j = 1; j < lights.length; j++) {
+          var minGap = round3(yellow + 0.02);
+          if (lights[j].t - lights[j - 1].t < minGap) lights[j].t = round3(lights[j - 1].t + minGap);
+        }
+        out.lights = lights;
+        var locks = [];
+        var srcLocks = spec.locks || [];
+        for (var li = 0; li < srcLocks.length; li++) {
+          var lk = copyFields(srcLocks[li]);
+          lk.warn = round3(srcLocks[li].warn / HELL_SPEED);
+          lk.start = round3(srcLocks[li].start / HELL_SPEED);
+          lk.end = round3(srcLocks[li].end / HELL_SPEED);
+          locks.push(lk);
+        }
+        out.locks = locks;
+        var events = [];
+        var srcEvents = spec.events || [];
+        for (var ei = 0; ei < srcEvents.length; ei++) {
+          var ev = copyFields(srcEvents[ei]);
+          var rawReact = srcEvents[ei].react == null ? 0.5 : srcEvents[ei].react;
+          var evReact = Math.max(HELL_FLOOR_EVENT, round3(rawReact / HELL_SPEED));
+          var evDur = round3(srcEvents[ei].dur / HELL_SPEED);
+          var stop = Math.max(0.05, round3((srcEvents[ei].dur - rawReact) / HELL_SPEED));
+          if (evDur < round3(evReact + stop)) evDur = round3(evReact + stop);
+          ev.t = round3(srcEvents[ei].t / HELL_SPEED);
+          ev.react = evReact;
+          ev.dur = evDur;
+          events.push(ev);
+        }
+        out.events = events;
+        return out;
+      }
+      function limitLabel(seconds) {
+        var shown = hellMode ? seconds / HELL_SPEED : seconds;
+        var rounded = Math.round(shown * 10) / 10;
+        var text = Math.abs(rounded - Math.round(rounded)) < 0.05 ? String(Math.round(rounded)) : rounded.toFixed(1);
+        return text + " 秒";
+      }
+      function loadHell() {
+        try { hellMode = localStorage.getItem(HELL_KEY) === "1"; } catch (err) { hellMode = false; }
+      }
+      function paintHellToggle() {
+        if (!hellToggle) return;
+        hellToggle.setAttribute("aria-pressed", hellMode ? "true" : "false");
+        if (hellState) setText(hellState, hellMode ? "開" : "關");
+        if (hellBadge) hellBadge.hidden = !hellMode || mode === "menu";
+      }
+      function setHellMode(on) {
+        hellMode = !!on;
+        try { localStorage.setItem(HELL_KEY, hellMode ? "1" : "0"); } catch (err) {}
+        paintMenu();
+        render();
+      }
 
       function roundLimit() {
         return TIME_LIMIT;
@@ -2057,6 +2230,7 @@
         if (id === "mix" && mixSpec) spec = mixSpec;
         if (id === "final" && finalSpec) spec = finalSpec;
         if (id === "challenge" && challengeSpec) spec = challengeSpec;
+        spec = presentSpec(spec);
         levelId = id;
         YELLOW = spec.yellow;
         REACT = spec.react;
@@ -2116,12 +2290,15 @@
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
           if (data.v === 2 && data.levels) {
-            SCORE_KEYS.forEach(function (key) {
-              var item = data.levels[key];
-              if (!item) return;
+            function takeScore(key, item) {
+              if (!item || typeof item !== "object") return;
+              var base = key.length > 5 && key.slice(-5) === "_hell" ? key.slice(0, -5) : key;
+              if (!LEVELS[base] && SCORE_KEYS.indexOf(base) < 0) return;
+              if (!bests[key]) bests[key] = blankScore();
               if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
               if (typeof item.bestProgress === "number" && item.bestProgress > 0 && item.bestProgress <= 100) bests[key].bestProgress = item.bestProgress;
-            });
+            }
+            Object.keys(data.levels).forEach(function (key) { takeScore(key, data.levels[key]); });
           } else if (typeof data.bestTimeMs === "number" || typeof data.bestProgress === "number") {
             if (typeof data.bestTimeMs === "number" && data.bestTimeMs > 0 && data.bestTimeMs < 120000) bests.mix.bestTimeMs = data.bestTimeMs;
             if (typeof data.bestProgress === "number" && data.bestProgress > 0 && data.bestProgress <= 100) bests.mix.bestProgress = data.bestProgress;
@@ -2160,10 +2337,21 @@
       }
 
       function paintMenu() {
-        SCORE_KEYS.forEach(function (key) {
-          var el = document.getElementById(MENU_BEST[key]);
-          if (el && bests[key]) setText(el, menuScoreText(bests[key]));
-        });
+        var buttons = menu.querySelectorAll("[data-level]");
+        for (var i = 0; i < buttons.length; i++) {
+          var id = buttons[i].getAttribute("data-level");
+          var meta = buttons[i].nextElementSibling;
+          if (!meta || !meta.classList || !meta.classList.contains("lvl-meta")) {
+            var parent = buttons[i].parentElement;
+            var metas = parent ? parent.querySelectorAll(".lvl-meta") : [];
+            meta = metas.length === 1 ? metas[0] : null;
+          }
+          if (!meta) continue;
+          var bestEl = meta.querySelector(".lvl-best");
+          var limitEl = meta.querySelector(".lvl-limit");
+          if (bestEl) setText(bestEl, menuScoreText(bests[scoreKey(id)]));
+          if (limitEl && LEVELS[id]) setText(limitEl, limitLabel(LEVELS[id].limit || 30));
+        }
       }
 
       function rememberProgress() {
@@ -2368,7 +2556,7 @@
       function eventVisual(t) {
         for (var i = 0; i < EVENTS.length; i++) {
           var ev = EVENTS[i];
-          if (t >= ev.t - EVENT_LEAD && t < ev.t + ev.dur) return EVENTS[i];
+          if (t >= ev.t - simScale(EVENT_LEAD) && t < ev.t + ev.dur) return EVENTS[i];
         }
         return null;
       }
@@ -2450,7 +2638,7 @@
         if (!lockActive) {
           for (var li = 0; li < LOCKS.length; li++) {
             if (elapsed - dt < LOCKS[li].end && elapsed >= LOCKS[li].end) {
-              graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, 0.45));
+              graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, simScale(0.45)));
             }
           }
           seenLock = -1;
@@ -2461,7 +2649,7 @@
             lockSnap = null;
           }
           var lockAge = elapsed - lk.lock.start;
-          if (lockAge >= LOCK_ONSET && lockSnap === null) lockSnap = braking;
+          if (lockAge >= simScale(LOCK_ONSET) && lockSnap === null) lockSnap = braking;
           else if (lockSnap !== null && braking !== lockSnap) {
             failLock(lockSnap);
             return;
@@ -2470,7 +2658,7 @@
         for (var ei = 0; ei < EVENTS.length; ei++) {
           var evEnd = EVENTS[ei].t + EVENTS[ei].dur;
           if (elapsed - dt < evEnd && elapsed >= evEnd) {
-            graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, 0.45));
+            graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, simScale(0.45)));
           }
         }
         var evNow = eventAt(elapsed);
@@ -2487,7 +2675,7 @@
         }
         if (moving) {
           progress += MOVE_RATE * dt;
-          dashOffset = (dashOffset + 80 * dt) % 22;
+          dashOffset = (dashOffset + 80 * hellPace() * dt) % 22;
           if (progress >= 100) {
             progress = 100;
             win();
@@ -2577,7 +2765,7 @@
       }
 
       function graceRatio() {
-        if (resumeGraceLeft > 0) return resumeGraceLeft / RESUME_GRACE;
+        if (resumeGraceLeft > 0) return resumeGraceLeft / simScale(RESUME_GRACE);
         var evGrace = eventAt(elapsed);
         if (evGrace && evGrace.phase === "react") {
           return Math.max(0, Math.min(1, (evGrace.event.t + evGrace.event.react - elapsed) / evGrace.event.react));
@@ -2641,6 +2829,8 @@
         var remain = Math.max(0, roundLimit() - elapsed);
 
         app.dataset.mode = mode;
+        app.dataset.hell = hellMode ? "1" : "0";
+        paintHellToggle();
         app.dataset.signal = phase.signal;
         app.dataset.rule = phase.rule;
         app.dataset.required = req;
@@ -2942,7 +3132,7 @@
         if (mode !== "paused") return;
         mode = pausedFrom === "teaching" ? "teaching" : "playing";
         pausedReason = "";
-        if (mode === "playing") resumeGraceLeft = RESUME_GRACE;
+        if (mode === "playing") resumeGraceLeft = simScale(RESUME_GRACE);
         releaseInputs();
         inputArmedAt = performance.now() + 180;
         lastTs = performance.now();
@@ -3048,6 +3238,7 @@
       document.getElementById("teachMenu").addEventListener("click", function () { showMenu(); });
       menuPrev.addEventListener("click", function () { setMenuPage(menuPage - 1); });
       menuNext.addEventListener("click", function () { setMenuPage(menuPage + 1); });
+      if (hellToggle) hellToggle.addEventListener("click", function () { setHellMode(!hellMode); });
       var menuDots = menu.querySelectorAll(".menu-dot");
       for (var di = 0; di < menuDots.length; di++) {
         menuDots[di].addEventListener("click", function (event) {
@@ -3111,6 +3302,7 @@
         requestAnimationFrame(frame);
       }
 
+      loadHell();
       applyLevel("normal");
       loadBest();
       readMenuPage();
@@ -3203,6 +3395,80 @@
               elapsed: Math.round(elapsed * 100) / 100,
               level: levelId,
               seed: levelId === "challenge" ? challengeSeed : levelId === "mix" ? mixSeed : finalSeed,
+              limit: roundLimit(),
+              result: result ? result.kind : "",
+              detail: result ? result.detail : ""
+            };
+          },
+          setHell: function (on) { setHellMode(!!on); },
+          levelIds: function () { return Object.keys(LEVELS); },
+          hellOn: function () { return hellMode; },
+          scores: function () {
+            var out = {};
+            Object.keys(bests).forEach(function (key) {
+              out[key] = { bestTimeMs: bests[key].bestTimeMs, bestProgress: bests[key].bestProgress };
+            });
+            return out;
+          },
+          tuned: function () {
+            var yellows = [];
+            for (var i = 0; i < PHASES.length; i++) {
+              if (PHASES[i].signal === "yellow" && PHASES[i + 1]) yellows.push(round3(PHASES[i + 1].t - PHASES[i].t));
+            }
+            return {
+              hell: hellMode,
+              yellow: YELLOW,
+              react: REACT,
+              limit: roundLimit(),
+              move: Math.round((100 / MOVE_RATE) * 1000) / 1000,
+              onset: simScale(LOCK_ONSET),
+              lead: simScale(EVENT_LEAD),
+              resume: simScale(RESUME_GRACE),
+              after: Math.max(REACT, simScale(0.45)),
+              yellows: yellows,
+              events: EVENTS.map(function (ev) { return { t: ev.t, react: ev.react, dur: ev.dur, id: ev.id }; }),
+              locks: LOCKS.map(function (lk) { return { warn: lk.warn, start: lk.start, end: lk.end }; })
+            };
+          },
+          reactPlay: function (id, react, seed) {
+            levelId = id;
+            var picked = (seed == null ? 1 : seed) >>> 0;
+            if (id === "challenge") forcedChallenge = picked;
+            if (id === "mix") forcedMix = picked;
+            if (id === "final") forcedSeed = picked;
+            freshChallenge();
+            var dt = 0.01;
+            var reactAt = react == null ? 0.25 : react;
+            var steps = 0;
+            var cap = Math.ceil((roundLimit() + 2) / dt);
+            while (mode === "playing" && steps < cap) {
+              var info = phaseAt(elapsed);
+              var ev = eventAt(elapsed);
+              var lk = lockAt(elapsed);
+              var nextT = elapsed + dt;
+              var want;
+              if (ev && ev.phase === "stop") want = true;
+              else if (ev) want = (nextT - ev.event.t) >= reactAt;
+              else if (lk && lk.phase === "active" && lockSnap !== null) want = lockSnap;
+              else if (lk && lk.phase === "active") want = braking;
+              else if (info.phase.signal === "yellow") {
+                var nr = info.next ? requiredOf(info.next) : "go";
+                want = nr === "stop" ? (nextT - info.phase.t) >= reactAt : (braking && (nextT - info.phase.t) < reactAt);
+              } else if (requiredOf(info.phase) === "stop") want = (nextT - info.phase.t) >= reactAt ? true : braking;
+              else want = braking && (nextT - info.phase.t) < reactAt;
+              debugBrake = want;
+              syncBraking();
+              stepOnce(dt);
+              steps++;
+            }
+            debugBrake = null;
+            syncBraking();
+            return {
+              mode: mode,
+              elapsed: Math.round(elapsed * 1000) / 1000,
+              progress: Math.round(progress * 10) / 10,
+              level: levelId,
+              seed: id === "challenge" ? challengeSeed : id === "mix" ? mixSeed : id === "final" ? finalSeed : null,
               limit: roundLimit(),
               result: result ? result.kind : "",
               detail: result ? result.detail : ""
