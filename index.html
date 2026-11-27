@@ -259,8 +259,52 @@
     @keyframes sweep { from { transform: translateX(-8px); } to { transform: translateX(10px); } }
     #car.is-gust { transform: rotate(-11deg) translateX(7px); }
     #car.is-gust.is-braking { transform: rotate(-11deg) translateX(7px) scale(1.04, 0.92); }
+    #eventActor.is-hurry .walk { animation-duration: 0.36s; }
+    #eventActor.is-hurry .roll { animation-duration: 0.28s; }
+    #eventActor.is-hurry::after {
+      content: "快走";
+      position: absolute;
+      right: 0;
+      top: -4px;
+      padding: 0 5px;
+      border-radius: 8px;
+      background: #f6d98a;
+      color: #171b1f;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    #eventActor.is-look .point { animation: lookDown 0.7s ease; }
+    @keyframes lookDown {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      30% { transform: translate(0, 5px) rotate(8deg); }
+      75% { transform: translate(0, 5px) rotate(8deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+    #honkFx {
+      position: absolute;
+      left: 50%;
+      z-index: 4;
+      width: 36px;
+      height: 36px;
+      margin-left: -18px;
+      border-radius: 50%;
+      border: 3px solid #171b1f;
+      background: #f6d98a;
+      color: #171b1f;
+      font-size: 16px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      animation: honkPop 0.45s ease-out forwards;
+    }
+    @keyframes honkPop {
+      from { transform: scale(0.45); opacity: 1; }
+      to { transform: scale(1.7); opacity: 0; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .walk, .roll, .point, .jab-r, .jab-l, .gust { animation: none; }
+      .walk, .roll, .point, .jab-r, .jab-l, .gust, #honkFx, #eventActor.is-look .point { animation: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       .rule-inner, .rule-reverse, #ruleCard.is-reverse .rule-inner { transform: none; transition: opacity 0.2s linear; }
@@ -325,7 +369,7 @@
     #meterFill { display: block; height: 100%; width: 0; background: var(--sign); }
     #progressText { flex: none; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
 
-    #hold { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+    #hold { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
     #lane {
       position: relative;
       container-type: size;
@@ -669,6 +713,40 @@
     #pedal.is-held .brake-lamp { background: var(--red); box-shadow: 0 0 12px rgba(226, 59, 59, 0.85); }
     .pedal-title { font-size: 28px; font-weight: 700; }
     .pedal-sub { font-size: 14px; color: #d5dbe0; min-height: 1.2em; }
+    #hornBtn {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 4;
+      width: 68px;
+      height: 68px;
+      padding: 0;
+      border-radius: 50%;
+      border: 3px solid #f3efe4;
+      background: #1a2128;
+      box-shadow: 0 4px 0 #070809;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      line-height: 1;
+      touch-action: manipulation;
+      --cool: 0;
+    }
+    #hornBtn .horn-mark { font-size: 22px; font-weight: 700; }
+    #hornBtn .horn-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; }
+    #hornBtn.is-honk { transform: scale(0.94); background: #f6d98a; color: #171b1f; }
+    #hornBtn.is-warn { border-color: #e6a817; color: #f6d98a; }
+    #hornBtn.is-hot { border-color: #e23b3b; color: #ffb4b4; }
+    #hornBtn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: conic-gradient(rgba(7, 8, 9, 0.62) calc(var(--cool) * 360deg), transparent 0);
+      pointer-events: none;
+    }
 
     #hint {
       color: #d7dee4;
@@ -937,6 +1015,8 @@
       #hold { gap: 6px; }
       #pedal { min-height: 96px; }
       .pedal-title { font-size: 22px; }
+      #hornBtn { width: 56px; height: 56px; }
+      #hornBtn .horn-mark { font-size: 18px; }
       #teachBar { padding: 8px 10px; }
       #teachText { font-size: 16px; }
       #replayBtn, #startBtn { height: 44px; margin-top: 6px; }
@@ -1211,15 +1291,20 @@
             <p class="lyric">這似季候風</p>
           </div>
         </div>
+        <div id="honkFx" hidden>咹</div>
       </div>
       <div id="pedal" aria-live="polite">
         <div class="brake-lamp"></div>
         <div class="pedal-title">按住煞車</div>
         <div class="pedal-sub" id="pedalSub">放開前進</div>
       </div>
+      <button id="hornBtn" type="button" data-no-brake aria-label="鳴笛" aria-keyshortcuts="H">
+        <span class="horn-mark" aria-hidden="true">咹</span>
+        <span class="horn-label">鳴笛</span>
+      </button>
     </div>
 
-    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。<span class="kb">空白鍵煞車，Esc 暫停。</span></p>
+    <p id="hint">按住煞車、放開前進；燈號不符合目前規則就出局。右下角可鳴笛。<span class="kb">空白鍵煞車，H 鳴笛，Esc 暫停。</span></p>
 
     <div id="teachBar" hidden data-no-brake>
       <p id="teachText">先練習這個關卡。</p>
@@ -2694,6 +2779,16 @@
           penalty: "第13條：「凡違反第4、5、6、7、8、9、10或11(1)條的條文，均須繳付定額罰款，數額為$200或由立法會藉決議訂明的較大數額。」編輯附註：「1994年第109號法律公告訂明，由1994年6月1日起，違反第4、5、6、7、8、9、10或11(1)條的任何條文的定額罰款為$320(見第237章，附屬法例B)。」",
           href: "https://www.elegislation.gov.hk/hk/cap237!zh-Hant-HK/s4",
           link: "第237章第4條"
+        },
+        "horn": {
+          head: "第374G章《道路交通(交通管制)規例》第43條",
+          label: "",
+          reason: "不必要地使用響號",
+          fine: "最高罰款$2,000",
+          quote: "第43條：「任何人不得在道路上使用車輛上任何發聲警報設備，除非是為着向在道路上或附近的任何人發出危險警報。」",
+          penalty: "第61(2)條：「任何人無合理辯解而違反第10(1)、10A(1)、12(1)、14(5)、(6)或(7)、20(4)或(5)、21(4)、23(2)、33(6)、34(2)、36、39、41A、42、42A、42B、43、44、45、46、50或51條的任何條文或規定，即屬犯罪，可處第1級罰款。」第43條在第61(2)條的名單內。最高罰則是第1級罰款。" + FINE_LEVELS,
+          href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s43",
+          link: "第374G章第43條"
         }
       };
 
@@ -2741,10 +2836,147 @@
         audioCue("fail");
       }
 
+      var HORN_COOL = 1.5;
+      var HORN_WINDOW = 10;
+      var hornReadyAt = 0;
+      var hornTimes = [];
+      var hurryMap = {};
+      var honkUntil = 0;
+      var lookUntil = 0;
+      var hornRand = null;
+      var hornBtn = document.getElementById("hornBtn");
+      var honkFx = document.getElementById("honkFx");
+
+      function resetHorn() {
+        hornReadyAt = 0;
+        hornTimes = [];
+        hurryMap = {};
+        honkUntil = 0;
+        lookUntil = 0;
+      }
+
+      function hornRoll() {
+        if (urlSeed == null) return Math.random();
+        if (!hornRand) hornRand = mulberry32((urlSeed + 0x484F524E) >>> 0);
+        return hornRand();
+      }
+
+      function eventDur(ev) {
+        var key = ev.id + "@" + ev.t;
+        return hurryMap[key] != null ? hurryMap[key] : ev.dur;
+      }
+
+      function hornCount(at) {
+        var start = at - HORN_WINDOW;
+        var n = 0;
+        for (var i = 0; i < hornTimes.length; i++) if (hornTimes[i] >= start - 1e-9) n++;
+        return n;
+      }
+
+      function stopFloor() {
+        return hellMode ? 0.05 : 0.45;
+      }
+
+      function hurryGrandma(ev) {
+        if (!ev || ev.id !== "grandma") return;
+        var key = ev.id + "@" + ev.t;
+        if (hurryMap[key] != null) return;
+        var stop = ev.dur - ev.react;
+        var next = Math.max(stopFloor(), round3(stop * 0.6));
+        if (next > stop) next = stop;
+        hurryMap[key] = round3(ev.react + next);
+        if (elapsed + 1e-9 >= ev.t + hurryMap[key]) {
+          graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, simScale(0.45)));
+        }
+      }
+
+      function playHornSound() {
+        try {
+          if (window.RTAudio && typeof window.RTAudio.play === "function") {
+            window.RTAudio.play("horn");
+            return;
+          }
+        } catch (err) {}
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        try {
+          if (!playHornSound.ctx) playHornSound.ctx = new AC();
+          var ctx = playHornSound.ctx;
+          if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+          var t = ctx.currentTime;
+          [370, 466].forEach(function (freq) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = "square";
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(0.06, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.28);
+          });
+        } catch (err) {}
+      }
+
+      function failHorn() {
+        mode = "lost";
+        lawOpen = false;
+        result = {
+          kind: "horn",
+          law: "horn",
+          kicker: "出局",
+          title: "",
+          detail: "狂響咹成條街都聽到，街坊報警話你擾民。",
+          meta: "進度 " + Math.floor(progress) + "%"
+        };
+        releaseInputs();
+        rememberProgress();
+        audioCue("fail");
+      }
+
+      function tryHorn() {
+        if (mode !== "playing" && mode !== "teaching") return false;
+        var nowMs = performance.now();
+        if (nowMs < hornReadyAt) return false;
+        hornReadyAt = nowMs + HORN_COOL * 1000;
+        honkUntil = nowMs + 480;
+        playHornSound();
+        var teaching = mode === "teaching";
+        var actorId = "";
+        var liveEv = null;
+        if (teaching && !teach.ready && teachStep() && teachStep().kind === "event") actorId = teachStep().event;
+        else if (!teaching) {
+          liveEv = eventVisual(elapsed);
+          if (liveEv) actorId = liveEv.id;
+        }
+        if (actorId === "grandma") {
+          if (liveEv) hurryGrandma(liveEv);
+          else hurryMap.teach = 1;
+        } else if (actorId === "spidey") lookUntil = nowMs + 700;
+        if (mode === "playing") {
+          hornTimes.push(elapsed);
+          var start = elapsed - HORN_WINDOW;
+          var kept = [];
+          for (var i = 0; i < hornTimes.length; i++) if (hornTimes[i] >= start - 1e-9) kept.push(hornTimes[i]);
+          hornTimes = kept;
+          var n = hornTimes.length;
+          var chance = n <= 2 ? 0 : n === 3 ? 0.15 : n === 4 ? 0.35 : 0.6;
+          if (chance > 0 && hornRoll() < chance) {
+            failHorn();
+            render();
+            return true;
+          }
+        }
+        render();
+        return true;
+      }
+
       function eventAt(t) {
         for (var i = 0; i < EVENTS.length; i++) {
           var ev = EVENTS[i];
-          var end = ev.t + ev.dur;
+          var end = ev.t + eventDur(ev);
           if (t >= ev.t && t < end) {
             return { index: i, phase: t < ev.t + ev.react ? "react" : "stop", event: ev };
           }
@@ -2755,7 +2987,7 @@
       function eventVisual(t) {
         for (var i = 0; i < EVENTS.length; i++) {
           var ev = EVENTS[i];
-          if (t >= ev.t - simScale(EVENT_LEAD) && t < ev.t + ev.dur) return EVENTS[i];
+          if (t >= ev.t - simScale(EVENT_LEAD) && t < ev.t + eventDur(ev)) return EVENTS[i];
         }
         return null;
       }
@@ -2858,7 +3090,7 @@
           }
         }
         for (var ei = 0; ei < EVENTS.length; ei++) {
-          var evEnd = EVENTS[ei].t + EVENTS[ei].dur;
+          var evEnd = EVENTS[ei].t + eventDur(EVENTS[ei]);
           if (elapsed - dt < evEnd && elapsed >= evEnd) {
             graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, simScale(0.45)));
           }
@@ -3107,7 +3339,27 @@
           paintActor(actorId);
           placeActor();
         }
+        var hurried = false;
+        if (actorId === "grandma") {
+          if (evShown && hurryMap[evShown.id + "@" + evShown.t] != null) hurried = true;
+          else if (teaching && hurryMap.teach) hurried = true;
+        }
+        eventActor.classList.toggle("is-hurry", hurried);
+        eventActor.classList.toggle("is-look", actorId === "spidey" && performance.now() < lookUntil);
         car.classList.toggle("is-gust", actorId === "wind");
+        car.classList.toggle("is-honk", performance.now() < honkUntil);
+        if (honkFx) {
+          honkFx.hidden = performance.now() > honkUntil;
+          if (!honkFx.hidden) honkFx.style.bottom = ((parseFloat(car.style.bottom) || 8) + 38) + "px";
+        }
+        if (hornBtn) {
+          var cool = Math.max(0, hornReadyAt - performance.now()) / (HORN_COOL * 1000);
+          hornBtn.style.setProperty("--cool", cool.toFixed(3));
+          hornBtn.classList.toggle("is-honk", performance.now() < honkUntil);
+          var honks = (mode === "playing" || (mode === "paused" && pausedFrom === "playing")) ? hornCount(elapsed) : 0;
+          hornBtn.classList.toggle("is-warn", honks === 2);
+          hornBtn.classList.toggle("is-hot", honks >= 3);
+        }
 
         var rainy = levelId === "rain" && mode !== "menu";
         var sliding = slidingNow();
@@ -3297,6 +3549,7 @@
         teach = { step: 0, acc: 0, ready: false, phase: "choose", captured: null, countLeft: 3, lastBrake: false };
         progress = 8;
         startBtn.hidden = true;
+        resetHorn();
         releaseInputs();
         inputArmedAt = performance.now() + 180;
         setText(teachText, TEACH[id][0].text);
@@ -3328,6 +3581,7 @@
         result = null;
         teach.ready = false;
         startBtn.hidden = true;
+        resetHorn();
         releaseInputs();
         inputArmedAt = performance.now() + 240;
         lastTs = performance.now();
@@ -3415,6 +3669,14 @@
           if (mode === "playing" || mode === "teaching") enterPause("manual");
           return;
         }
+        if (event.code === "KeyH") {
+          if (event.repeat) return;
+          if (mode === "playing" || mode === "teaching") {
+            event.preventDefault();
+            tryHorn();
+          }
+          return;
+        }
         if (event.code !== "Space" && event.code !== "Enter") return;
         event.preventDefault();
         if (event.repeat) return;
@@ -3443,6 +3705,16 @@
       pauseBtn.addEventListener("click", function () {
         if (mode === "playing" || mode === "teaching") enterPause("manual");
       });
+      if (hornBtn) {
+        hornBtn.addEventListener("pointerdown", function (event) {
+          event.stopPropagation();
+        });
+        hornBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          tryHorn();
+        });
+      }
       cardBtn.addEventListener("click", function () {
         if (mode === "paused") resume();
         else if (mode === "won" || mode === "lost") freshChallenge();
@@ -3599,6 +3871,11 @@
             if (profile && profile.lamp != null) delays.lamp = profile.lamp;
             var steps = 0;
             while (mode === "playing" && steps < 4500) {
+              if (profile && profile.horn) {
+                var shownEv = eventVisual(elapsed);
+                if (shownEv && shownEv.id === "grandma" && hurryMap[shownEv.id + "@" + shownEv.t] == null) tryHorn();
+                if (mode !== "playing") break;
+              }
               var info = phaseAt(elapsed);
               var ev = eventAt(elapsed);
               var lk = lockAt(elapsed);
@@ -3633,6 +3910,7 @@
             };
           },
           setHell: function (on) { setHellMode(!!on); },
+          honk: function () { hornReadyAt = 0; var ok = tryHorn(); return { ok: ok, mode: mode, count: hornCount(elapsed), law: result && result.law ? result.law : "", hurry: eventActor.classList.contains("is-hurry"), look: eventActor.classList.contains("is-look") }; },
           levelIds: function () { return Object.keys(LEVELS); },
           hellOn: function () { return hellMode; },
           scores: function () {
@@ -3658,7 +3936,7 @@
               resume: simScale(RESUME_GRACE),
               after: Math.max(REACT, simScale(0.45)),
               yellows: yellows,
-              events: EVENTS.map(function (ev) { return { t: ev.t, react: ev.react, dur: ev.dur, id: ev.id }; }),
+              events: EVENTS.map(function (ev) { return { t: ev.t, react: ev.react, dur: eventDur(ev), id: ev.id, hurried: hurryMap[ev.id + "@" + ev.t] != null }; }),
               locks: LOCKS.map(function (lk) { return { warn: lk.warn, start: lk.start, end: lk.end }; })
             };
           },
@@ -3769,6 +4047,11 @@
                 return id && EVENT_COPY[id] ? EVENT_COPY[id].title : "";
               })(),
               gust: car.classList.contains("is-gust"),
+              hornCount: hornCount(elapsed),
+              hornCool: Math.max(0, hornReadyAt - performance.now()) / 1000,
+              grandmaHurry: eventActor.classList.contains("is-hurry"),
+              spideyLook: eventActor.classList.contains("is-look"),
+              honkShown: !!(honkFx && !honkFx.hidden),
               bannerText: bannerText.textContent,
               cardTitle: cardTitle.textContent,
               cardDetail: cardDetail.textContent,

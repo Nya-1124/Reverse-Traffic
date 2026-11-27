@@ -603,6 +603,13 @@
     trackBed(w, wg);
   }
 
+  function horn() {
+    if (!canPlay()) return;
+    var t = ctx.currentTime;
+    tone(t, 370, 0.32, "sawtooth", 0.11, sfxGain, false);
+    tone(t, 466, 0.32, "square", 0.09, sfxGain, false);
+  }
+
   function eventSting(id) {
     stopBeds();
     if (id === "grandma") oranges();
@@ -894,6 +901,7 @@
       onToggle();
       return;
     }
+    if (target.closest("#hornBtn")) return;
     var levelBtn = target.closest("button[data-level]");
     if (levelBtn) levelId = levelBtn.getAttribute("data-level") || levelId;
     if (target.closest("button")) playClick();
@@ -983,6 +991,7 @@
     else if (name === "wind" || name === "gust") gust();
     else if (name === "win") jingle();
     else if (name === "fail" || name === "siren") siren();
+    else if (name === "horn") horn();
   }
 
   function status() {
