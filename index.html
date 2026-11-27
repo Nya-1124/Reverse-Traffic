@@ -1304,6 +1304,7 @@
       </section>
     </div>
   </main>
+  <script src="audio.js"></script>
   <script>
     (function () {
       "use strict";
@@ -2696,6 +2697,12 @@
         }
       };
 
+      function audioCue(name) {
+        try {
+          if (window.RTAudio) window.RTAudio.cue(name);
+        } catch (err) {}
+      }
+
       function failLock(held) {
         mode = "lost";
         lawOpen = false;
@@ -2711,6 +2718,7 @@
         };
         releaseInputs();
         rememberProgress();
+        audioCue("fail");
       }
 
       function failEvent(ev) {
@@ -2730,6 +2738,7 @@
         };
         releaseInputs();
         rememberProgress();
+        audioCue("fail");
       }
 
       function eventAt(t) {
@@ -2773,6 +2782,7 @@
         };
         releaseInputs();
         rememberProgress();
+        audioCue("fail");
       }
 
       function failTime() {
@@ -2792,6 +2802,7 @@
         };
         releaseInputs();
         rememberProgress();
+        audioCue("fail");
       }
 
       function win() {
@@ -2811,6 +2822,7 @@
           meta: "這一局在時限內走到終點。"
         };
         releaseInputs();
+        audioCue("win");
       }
 
       function stepOnce(dt) {
@@ -3267,6 +3279,7 @@
         releaseInputs();
         setMenuPage(menuPage);
         render();
+        audioCue("menu");
       }
 
       function beginTeach(id) {
@@ -3288,6 +3301,7 @@
         inputArmedAt = performance.now() + 180;
         setText(teachText, TEACH[id][0].text);
         render();
+        audioCue("play");
       }
 
       function freshChallenge() {
@@ -3318,6 +3332,7 @@
         inputArmedAt = performance.now() + 240;
         lastTs = performance.now();
         render();
+        audioCue("play");
       }
 
       function beginChallenge() {
@@ -3507,6 +3522,7 @@
         lastTs = now;
         if (!loopPaused) update(dt);
         render();
+        try { if (window.RTAudio) window.RTAudio.sync(); } catch (err) {}
         requestAnimationFrame(frame);
       }
 
