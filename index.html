@@ -842,6 +842,7 @@
       <button type="button" data-level="lock">你個嘢壞咗</button>
       <p class="lvl-best" id="bestLock">尚無紀錄</p>
       <button type="button" data-level="mix">一時一樣</button>
+      <p class="lvl-sub">每次隨機，限時30秒</p>
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
       <button type="button" data-level="event">喂喂喂 嚇死人咩</button>
       <p class="lvl-best" id="bestEvent">尚無紀錄</p>
@@ -876,7 +877,7 @@
       var STORAGE_KEY = "reverse-traffic-v1";
       var LEVELS = {
         normal: {
-          name: "紅綠燈", yellow: 0.8, react: 0.5, move: 13.2, locks: [],
+          name: "紅綠燈", yellow: 0.75, react: 0.45, move: 11.93, locks: [],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
             { t: 5.2, signal: "red", rule: "normal" },
@@ -884,11 +885,12 @@
             { t: 13.4, signal: "red", rule: "normal" },
             { t: 17.6, signal: "green", rule: "normal" },
             { t: 21.8, signal: "red", rule: "normal" },
-            { t: 25.6, signal: "green", rule: "normal" }
+            { t: 25.6, signal: "green", rule: "normal" },
+            { t: 28.0, signal: "red", rule: "normal" }
           ]
         },
         reverse: {
-          name: "倒轉地球", yellow: 0.55, react: 0.35, move: 14.9, locks: [],
+          name: "倒轉地球", yellow: 0.5, react: 0.3, move: 14.36, locks: [],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
             { t: 4.4, signal: "red", rule: "normal" },
@@ -897,11 +899,12 @@
             { t: 16.2, signal: "green", rule: "reverse" },
             { t: 20.2, signal: "red", rule: "reverse" },
             { t: 24.2, signal: "green", rule: "reverse" },
-            { t: 27.8, signal: "red", rule: "reverse" }
+            { t: 27.8, signal: "red", rule: "reverse" },
+            { t: 28.8, signal: "green", rule: "reverse" }
           ]
         },
         lock: {
-          name: "你個嘢壞咗", yellow: 0.55, react: 0.35, move: 12.4, locks: [
+          name: "你個嘢壞咗", yellow: 0.5, react: 0.3, move: 11.43, locks: [
             { warn: 6.6, start: 9.6, end: 12.35 },
             { warn: 15.3, start: 18.3, end: 21.35 }
           ],
@@ -914,7 +917,8 @@
             { t: 14.4, signal: "red", rule: "normal" },
             { t: 19.4, signal: "green", rule: "normal" },
             { t: 21.9, signal: "red", rule: "normal" },
-            { t: 23.7, signal: "green", rule: "normal" }
+            { t: 23.7, signal: "green", rule: "normal" },
+            { t: 28.0, signal: "red", rule: "normal" }
           ]
         },
         mix: {
@@ -935,7 +939,7 @@
           ]
         },
         event: {
-          name: "喂喂喂 嚇死人咩", yellow: 0.55, react: 0.4, move: 11.2, locks: [],
+          name: "喂喂喂 嚇死人咩", yellow: 0.5, react: 0.35, move: 9.44, locks: [],
           events: [
             { t: 7.2, react: 0.6, dur: 2.2, id: "grandma" },
             { t: 14.2, react: 0.6, dur: 2.2, id: "spidey" },
@@ -948,7 +952,8 @@
             { t: 10.8, signal: "red", rule: "normal" },
             { t: 13.4, signal: "green", rule: "normal" },
             { t: 17.6, signal: "red", rule: "normal" },
-            { t: 20.2, signal: "green", rule: "normal" }
+            { t: 20.2, signal: "green", rule: "normal" },
+            { t: 27.2, signal: "red", rule: "normal" }
           ]
         },
         final: {
@@ -1393,6 +1398,163 @@
         return draft;
       }
 
+      function auditMix(spec) {
+        var problems = [];
+        var limit = 30;
+        var yellow = spec.yellow;
+        var phases = buildPhases(spec.lights, yellow);
+        function phaseAtT(t) {
+          var idx = 0;
+          for (var i = 0; i < phases.length; i++) if (t + 1e-9 >= phases[i].t) idx = i;
+          return phases[idx];
+        }
+        if (spec.events.length !== 0) problems.push("events");
+        if (spec.lights.length < 3 || spec.lights[1].t < 3) problems.push("early-light");
+        var flips = 0;
+        for (var i = 1; i < spec.lights.length; i++) {
+          if (spec.lights[i].t - spec.lights[i - 1].t < yellow + 0.2) problems.push("lights-close");
+          if (spec.lights[i].t > limit - 2) problems.push("late-light");
+          if (spec.lights[i].rule !== spec.lights[i - 1].rule) flips++;
+        }
+        if (flips < 1 || flips > 2) problems.push("flips");
+        if (spec.locks.length < 1 || spec.locks.length > 2) problems.push("locks");
+        var spans = [];
+        for (var fi = 1; fi < spec.lights.length; fi++) {
+          if (spec.lights[fi].rule !== spec.lights[fi - 1].rule) {
+            spans.push({ kind: "flip", a: round3(spec.lights[fi].t - yellow), b: spec.lights[fi].t });
+          }
+        }
+        for (var li = 0; li < spec.locks.length; li++) {
+          var lk = spec.locks[li];
+          if (lk.start < 3 || lk.end > limit - 2) problems.push("lock-edge");
+          if (lk.end - lk.start < 1.35) problems.push("lock-short");
+          var changed = false;
+          for (var ci = 1; ci < spec.lights.length; ci++) {
+            var ct = spec.lights[ci].t;
+            if (ct > lk.start + 0.2 && ct < lk.end - 0.2) changed = true;
+          }
+          if (!changed) problems.push("lock-static");
+          spans.push({ kind: "lock", a: lk.start, b: lk.end });
+          if (phaseAtT(lk.start + 0.02).signal === "yellow") problems.push("lock-yellow");
+        }
+        spans.sort(function (a, b) { return a.a - b.a; });
+        for (var s = 1; s < spans.length; s++) {
+          if (spans[s].a < spans[s - 1].b - 0.02) problems.push("overlap");
+          else if (spans[s].a - spans[s - 1].b < 0.8) problems.push("gap");
+        }
+        return problems;
+      }
+
+      function buildMix(rand) {
+        function ri(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
+        function rf(a, b) { return a + rand() * (b - a); }
+        var yellow = 0.5;
+        var limit = 30;
+        var nFlip = ri(1, 2);
+        var nLock = ri(1, 2);
+        var pieces = [];
+        for (var i = 0; i < nFlip; i++) pieces.push({ type: "flip" });
+        for (var j = 0; j < nLock; j++) pieces.push({ type: "lock" });
+        for (var s = pieces.length - 1; s > 0; s--) {
+          var swap = Math.floor(rand() * (s + 1));
+          var tmp = pieces[s]; pieces[s] = pieces[swap]; pieces[swap] = tmp;
+        }
+        var lights = [{ t: 0, signal: "green", rule: "normal", safe: true }];
+        var locks = [];
+        var rule = "normal";
+        var signal = "green";
+        var now = 0;
+        var busyUntil = 0;
+        function goSig(r) { return r === "normal" ? "green" : "red"; }
+        function stopSig(r) { return r === "normal" ? "red" : "green"; }
+        function push(t, sig, r) {
+          var minT = now + yellow + 0.55;
+          if (lights.length === 1) minT = Math.max(minT, 3.2);
+          t = round3(Math.max(t, minT));
+          if (t > limit - 2.15) return false;
+          lights.push({ t: t, signal: sig, rule: r });
+          signal = sig;
+          rule = r;
+          now = t;
+          return true;
+        }
+        function fillerUntil(t) {
+          var spins = 0;
+          while (spins++ < 5) {
+            var earliest = Math.max(now + 2.15, busyUntil + yellow + 0.2);
+            if (earliest > t - 1.15) break;
+            var nt = round3(earliest + rf(0, 0.35));
+            if (nt > t - 1.05) break;
+            if (!push(nt, signal === "green" ? "red" : "green", rule)) break;
+          }
+        }
+        var startWin = 3.45;
+        var endWin = 26.6;
+        var slot = (endWin - startWin) / pieces.length;
+        for (var p = 0; p < pieces.length; p++) {
+          var piece = pieces[p];
+          var anchor = round3(startWin + slot * p + slot * 0.3 + rf(-slot * 0.08, slot * 0.08));
+          if (piece.type === "flip") {
+            fillerUntil(anchor);
+            var ft = Math.max(anchor, now + yellow + 0.65, busyUntil + yellow + 0.25);
+            if (ft > limit - 2.6) break;
+            var nextRule = rule === "normal" ? "reverse" : "normal";
+            var makeGo = rand() < 0.6;
+            if (!push(ft, makeGo ? goSig(nextRule) : stopSig(nextRule), nextRule)) break;
+            busyUntil = round3(now + 0.9);
+          } else {
+            fillerUntil(anchor);
+            var lt = Math.max(anchor, now + yellow + 0.6, busyUntil + yellow + 0.25);
+            var hostGo = rand() < 0.55;
+            if (!push(lt, hostGo ? goSig(rule) : stopSig(rule), rule)) break;
+            var ls = round3(now + rf(0.55, 0.75));
+            var changeAt = round3(ls + rf(1.05, 1.3));
+            if (changeAt > limit - 3.3) break;
+            if (!push(changeAt, signal === "green" ? "red" : "green", rule)) break;
+            var le = round3(now + rf(0.7, 0.9));
+            if (le > limit - 2.05 || le < ls + 1.45) break;
+            locks.push({ warn: ls, start: ls, end: le });
+            busyUntil = round3(le + 0.85);
+          }
+        }
+        fillerUntil(limit - 2.35);
+        return {
+          name: "一時一樣",
+          yellow: yellow,
+          react: 0.45,
+          limit: limit,
+          move: 8,
+          locks: locks,
+          events: [],
+          lights: lights
+        };
+      }
+
+      function generateMix(seed) {
+        var base = seed >>> 0;
+        var best = null;
+        for (var attempt = 0; attempt < 24; attempt++) {
+          var draft = buildMix(mulberry32((base + attempt * 9973) >>> 0));
+          draft.seed = base;
+          draft.problems = auditMix(draft);
+          var perf = simFinal(draft, "perf");
+          var slow = simFinal(draft, "slow");
+          var move = perf.died ? 0 : perf.moved * 0.7;
+          if (!slow.died && move > slow.moved - 0.5) move = Math.max(0, slow.moved - 0.55);
+          draft.move = Math.round(Math.max(6, move) * 100) / 100;
+          draft.perf = perf.moved;
+          draft.slow = slow.moved;
+          draft.perfDied = perf.died;
+          draft.slowDied = slow.died;
+          var slowCourse = simFinal(draft, "slow");
+          draft.slowWon = !slowCourse.died && slowCourse.moved + 1e-6 >= draft.move;
+          if (perf.died || slow.died || !draft.slowWon) draft.problems = draft.problems.concat(["unfair"]);
+          if (!best || draft.problems.length < best.problems.length) best = draft;
+          if (draft.problems.length === 0 && draft.slowWon) return draft;
+        }
+        return best;
+      }
+
       function auditChallenge(spec) {
         var problems = [];
         var limit = spec.limit || 60;
@@ -1585,6 +1747,10 @@
       var finalSeed = 0;
       var finalRun = 0;
       var forcedSeed = null;
+      var mixSpec = null;
+      var mixSeed = 0;
+      var mixRun = 0;
+      var forcedMix = null;
       var challengeSpec = null;
       var challengeSeed = 0;
       var challengeRun = 0;
@@ -1603,6 +1769,15 @@
         if (urlSeed != null) return (urlSeed + finalRun++) >>> 0;
         return (Math.floor(Math.random() * 0x7fffffff)) >>> 0;
       }
+      function nextMixSeed() {
+        if (forcedMix != null) {
+          var picked = forcedMix >>> 0;
+          forcedMix = null;
+          return picked;
+        }
+        if (urlSeed != null) return (urlSeed + mixRun++) >>> 0;
+        return (Math.floor(Math.random() * 0x7fffffff)) >>> 0;
+      }
       function nextChallengeSeed() {
         if (forcedChallenge != null) {
           var picked = forcedChallenge >>> 0;
@@ -1614,6 +1789,7 @@
       }
       function applyLevel(id) {
         var spec = LEVELS[id];
+        if (id === "mix" && mixSpec) spec = mixSpec;
         if (id === "final" && finalSpec) spec = finalSpec;
         if (id === "challenge" && challengeSpec) spec = challengeSpec;
         levelId = id;
@@ -2231,7 +2407,10 @@
       }
 
       function freshChallenge() {
-        if (levelId === "final") {
+        if (levelId === "mix") {
+          mixSpec = generateMix(nextMixSeed());
+          mixSeed = mixSpec.seed;
+        } else if (levelId === "final") {
           finalSpec = generateFinal(nextFinalSeed());
           finalSeed = finalSpec.seed;
         } else if (levelId === "challenge") {
@@ -2429,11 +2608,29 @@
           pause: function () { if (mode === "playing") enterPause("manual"); },
           resume: function () { resume(); },
           restart: function () { restart(); },
+          simLevel: function (id, mode) {
+            var spec = LEVELS[id];
+            return simFinal({
+              yellow: spec.yellow,
+              react: spec.react,
+              limit: spec.limit || 30,
+              move: spec.move,
+              locks: spec.locks || [],
+              events: spec.events || [],
+              lights: spec.lights
+            }, mode || "slow");
+          },
+          generateMix: function (seed) { return generateMix(seed >>> 0); },
           generateFinal: function (seed) { return generateFinal(seed >>> 0); },
           generateChallenge: function (seed) { return generateChallenge(seed >>> 0); },
           playSeed: function (seed) {
             forcedSeed = seed >>> 0;
             levelId = "final";
+            freshChallenge();
+          },
+          playMix: function (seed) {
+            forcedMix = seed >>> 0;
+            levelId = "mix";
             freshChallenge();
           },
           playChallenge: function (seed) {
@@ -2446,10 +2643,15 @@
             if (id === "challenge") {
               forcedChallenge = (profile && profile.seed != null ? profile.seed : 1) >>> 0;
             }
+            if (id === "mix") {
+              forcedMix = (profile && profile.seed != null ? profile.seed : 1) >>> 0;
+            }
             freshChallenge();
             var delays = (profile && profile.hesitant)
               ? { event: 0.62, lamp: 0.5, yellowStop: 0.33, release: 0.55, yellowGo: 0.55 }
-              : { event: 0.28, lamp: 0.28, yellowStop: 0.12, release: 0.26, yellowGo: 0.22 };
+              : (profile && profile.slow)
+                ? { event: 0.5, lamp: 0.35, yellowStop: 0, release: 0.45, yellowGo: 0.45 }
+                : { event: 0.28, lamp: 0.28, yellowStop: 0.12, release: 0.26, yellowGo: 0.22 };
             var steps = 0;
             while (mode === "playing" && steps < 4500) {
               var info = phaseAt(elapsed);
@@ -2477,7 +2679,7 @@
               mode: mode,
               elapsed: Math.round(elapsed * 100) / 100,
               level: levelId,
-              seed: levelId === "challenge" ? challengeSeed : finalSeed,
+              seed: levelId === "challenge" ? challengeSeed : levelId === "mix" ? mixSeed : finalSeed,
               limit: roundLimit(),
               result: result ? result.kind : "",
               detail: result ? result.detail : ""
@@ -2509,7 +2711,7 @@
               pausedReason: pausedReason,
               result: result,
               level: levelId,
-              seed: levelId === "challenge" ? challengeSeed : finalSeed,
+              seed: levelId === "challenge" ? challengeSeed : levelId === "mix" ? mixSeed : finalSeed,
               limit: roundLimit(),
               teachStep: teach.step,
               teachReady: teach.ready,
