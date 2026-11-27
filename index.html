@@ -576,13 +576,41 @@
     .card[data-kind="win"] .card-kicker { color: #0e6b3c; }
     #cardTitle { font-size: 32px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
     #stopLine {
-      margin-top: 12px;
-      font-size: 26px;
+      margin-top: 8px;
+      font-size: 34px;
       font-weight: 700;
-      line-height: 1.25;
-      letter-spacing: 0.06em;
+      line-height: 1.2;
+      letter-spacing: 0.04em;
+      text-align: center;
       color: #9d1f2c;
     }
+    #ticket {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background:
+        radial-gradient(circle at 0 18px, transparent 7px, #fffdf8 8px) left center / 14px 18px repeat-y,
+        radial-gradient(circle at 100% 18px, transparent 7px, #fffdf8 8px) right center / 14px 18px repeat-y,
+        #fffdf8;
+      color: #171b1f;
+      border: 2px dashed #171b1f;
+      text-align: left;
+    }
+    .ticket-head {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-align: center;
+    }
+    .ticket-row, .ticket-fine {
+      margin: 8px 0 0;
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+    .ticket-row { display: flex; justify-content: space-between; gap: 12px; }
+    .ticket-row span { font-weight: 500; }
+    .card[data-kind="lose"] #cardTitle { display: none; }
     #cardDetail, #cardMeta, #lawQuote, #lawPenalty, #lawLabel, #lawHead { margin-top: 12px; font-size: 16px; line-height: 1.45; }
     #lawBtn {
       width: 100%;
@@ -737,7 +765,9 @@
       #preLock, #lockCard { padding: 6px 8px; }
       .card { padding: 16px; }
       #cardTitle { font-size: 26px; }
-      #stopLine { font-size: 20px; }
+      #stopLine { font-size: 26px; }
+      #ticket { padding: 10px 12px; }
+      .ticket-head, .ticket-row, .ticket-fine { font-size: 14px; }
       #cardDetail, #lawQuote, #lawPenalty, #lawLabel, #lawHead { font-size: 15px; }
       #lawPanel { max-height: 34vh; }
       #cardBtn, #menuBtn, #startBtn { height: 44px; margin-top: 12px; }
@@ -957,9 +987,15 @@
     <div id="overlay" hidden data-no-brake>
       <section class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle" data-kind="pause">
         <p class="card-kicker" id="cardKicker">已暫停</p>
-        <p id="stopLine" hidden>停車 熄匙 車牌 身份證</p>
+        <p id="stopLine" hidden>停車 熄匙<br>車牌 身份證</p>
+        <div id="ticket" hidden>
+          <p class="ticket-head">罰單</p>
+          <p class="ticket-row"><span>違例原因</span><b id="ticketReason"></b></p>
+          <p class="ticket-fine" id="ticketFine"></p>
+        </div>
         <h2 id="cardTitle">時間不會流逝</h2>
         <p id="cardDetail"></p>
+        <p id="cardMeta"></p>
         <button id="lawBtn" type="button" hidden>了解更多</button>
         <div id="lawPanel" hidden>
           <p id="lawHead"></p>
@@ -969,7 +1005,6 @@
           <a id="lawLink" target="_blank" rel="noopener noreferrer"></a>
           <p class="law-note">條文摘自電子版香港法例，只供參考，以官方版本為準。</p>
         </div>
-        <p id="cardMeta"></p>
         <button id="cardBtn" type="button">繼續</button>
         <button id="replayBtn" type="button" hidden>重看教學</button>
         <button id="menuBtn" type="button">選關</button>
@@ -1174,6 +1209,9 @@
       var cardDetail = document.getElementById("cardDetail");
       var cardMeta = document.getElementById("cardMeta");
       var stopLine = document.getElementById("stopLine");
+      var ticket = document.getElementById("ticket");
+      var ticketReason = document.getElementById("ticketReason");
+      var ticketFine = document.getElementById("ticketFine");
       var lawBtn = document.getElementById("lawBtn");
       var lawPanel = document.getElementById("lawPanel");
       var lawHead = document.getElementById("lawHead");
@@ -2074,22 +2112,28 @@
         "move-red": {
           head: "第374G章《道路交通(交通管制)規例》第18條及第17(1)(a)條",
           label: "",
+          reason: "越過紅燈",
+          fine: "罰款$10,000及監禁六個月",
           quote: "第18條：「除本條例及本規例第60條另有規定外，並除為了遵從任何穿著制服的警務人員或穿著制服的交通督導員的指示外，任何在道路上的車輛的司機，不得違反交通燈在按照第16或17條發出紅色燈光或黃色燈光或間歇紅色燈光時所表示的指示。」第17(1)(a)條：「除(d)段另有規定外，紅色交通燈顯示禁止，即交通車輛不得越過車路上與交通燈一併設置的停車綫，或如停車綫當其時不是清晰可見的，或並無停車綫，則交通車輛不得越過該交通燈。」",
           penalty: REG61 + "最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s18",
           link: "第374G章第18條"
         },
         "move-green": {
-          head: "第374G章《道路交通(交通管制)規例》第17(1)(c)條",
-          label: "遊戲的反轉規則並非法例。法例沒有「綠燈要停」這項罪行。綠燈的規定是：",
-          quote: "第17(1)(c)條：「如設有綠色交通燈時，該綠色交通燈顯示在不抵觸第10條的條文下，交通車輛可經過該交通燈，並可在遵從任何訂明交通標誌或訂明道路標記的規限下，向前直駛或左轉或右轉行駛。」",
-          penalty: "這項遊戲規則沒有對應的罰則。",
-          href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s17",
-          link: "第374G章第17條"
+          head: "第374G章《道路交通(交通管制)規例》第18條及第17(1)(a)條",
+          label: "",
+          reason: "越過紅燈",
+          fine: "罰款$10,000及監禁六個月",
+          quote: "第18條：「除本條例及本規例第60條另有規定外，並除為了遵從任何穿著制服的警務人員或穿著制服的交通督導員的指示外，任何在道路上的車輛的司機，不得違反交通燈在按照第16或17條發出紅色燈光或黃色燈光或間歇紅色燈光時所表示的指示。」第17(1)(a)條：「除(d)段另有規定外，紅色交通燈顯示禁止，即交通車輛不得越過車路上與交通燈一併設置的停車綫，或如停車綫當其時不是清晰可見的，或並無停車綫，則交通車輛不得越過該交通燈。」",
+          penalty: REG61 + "最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
+          href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s18",
+          link: "第374G章第18條"
         },
         "move-other": {
           head: "第374G章《道路交通(交通管制)規例》第18條",
-          label: "最接近的條文是沒有遵從紅色、黃色或間歇紅色交通燈。遊戲裏的規則反轉並非法例。",
+          label: "",
+          reason: "不遵從交通燈",
+          fine: "罰款$10,000及監禁六個月",
           quote: "第18條：「除本條例及本規例第60條另有規定外，並除為了遵從任何穿著制服的警務人員或穿著制服的交通督導員的指示外，任何在道路上的車輛的司機，不得違反交通燈在按照第16或17條發出紅色燈光或黃色燈光或間歇紅色燈光時所表示的指示。」",
           penalty: REG61 + "最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s18",
@@ -2097,7 +2141,9 @@
         },
         "lock-stop": {
           head: "第374G章《道路交通(交通管制)規例》第18條及第17(1)(a)條",
-          label: "法例沒有「燈壞了仍要保持停止」的獨立條文。最接近的是沒有遵從紅色交通燈。",
+          label: "",
+          reason: "越過紅燈",
+          fine: "罰款$10,000及監禁六個月",
           quote: "第18條：「除本條例及本規例第60條另有規定外，並除為了遵從任何穿著制服的警務人員或穿著制服的交通督導員的指示外，任何在道路上的車輛的司機，不得違反交通燈在按照第16或17條發出紅色燈光或黃色燈光或間歇紅色燈光時所表示的指示。」第17(1)(a)條：「除(d)段另有規定外，紅色交通燈顯示禁止，即交通車輛不得越過車路上與交通燈一併設置的停車綫，或如停車綫當其時不是清晰可見的，或並無停車綫，則交通車輛不得越過該交通燈。」",
           penalty: REG61 + "最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s18",
@@ -2105,7 +2151,9 @@
         },
         "lock-go": {
           head: "第237章《定額罰款(交通違例事項)條例》第4條",
-          label: "法例沒有「燈壞了仍要保持通行」的獨立條文。最接近的是汽車停放以致造成不必要障礙。",
+          label: "",
+          reason: "造成不必要障礙",
+          fine: "定額罰款$320",
           quote: "第4條：「任何人均不得致使或允許任何汽車停放於道路上，以致該汽車停放的位置，或在當時的情形或情況下，相當可能對該道路造成不必要的障礙，或對其他使用該道路的人造成不必要的危險。」",
           penalty: "第13條：「凡違反第4、5、6、7、8、9、10或11(1)條的條文，均須繳付定額罰款，數額為$200或由立法會藉決議訂明的較大數額。」編輯附註：「1994年第109號法律公告訂明，由1994年6月1日起，違反第4、5、6、7、8、9、10或11(1)條的任何條文的定額罰款為$320(見第237章，附屬法例B)。」",
           href: "https://www.elegislation.gov.hk/hk/cap237!zh-Hant-HK/s4",
@@ -2113,7 +2161,9 @@
         },
         "event-grandma": {
           head: "第374G章《道路交通(交通管制)規例》第31條",
-          label: "遊戲裏的過路不是法例上的斑馬綫。最接近的行人優先條文是第31條。",
+          label: "",
+          reason: "不讓行人優先",
+          fine: "罰款$10,000及監禁六個月",
           quote: "第31條：「在斑馬綫上的每一名行人，當在斑馬綫上時，較任何車輛享有優先權；如車輛或其任何部分駛至斑馬綫或在斑馬綫上之前，行人已在該斑馬綫上，則該車輛的司機須讓該行人先行︰但如在斑馬綫上有一個行人安全島或中央分道帶，則位於行人安全島或中央分道帶每一邊的斑馬綫，須分別視為一條獨立的斑馬綫。」",
           penalty: REG61 + "第31條在第61(1)條的名單內。最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s31",
@@ -2121,7 +2171,9 @@
         },
         "event-spidey": {
           head: "第374章《道路交通條例》第38條",
-          label: "法例沒有「有人互指必須停車」的條文。最接近的是不小心駕駛。",
+          label: "",
+          reason: "不小心駕駛",
+          fine: "罰款$5,000及監禁六個月",
           quote: "第38(1)條：「任何人在道路上不小心駕駛汽車，即屬犯罪，可處第2級罰款及監禁6個月。」第38(2)條：「任何人在道路上駕駛車輛時，如無適當的謹慎及專注，或未有合理顧及其他使用該道路的人，即屬本條所指的不小心駕駛。」",
           penalty: "第38(1)條寫明的最高罰則是第2級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374!zh-Hant-HK/s38",
@@ -2129,7 +2181,9 @@
         },
         "event-wind": {
           head: "第374章《道路交通條例》第37條",
-          label: "遊戲情節本身不是法例上的危險駕駛。以下是第37條所寫的罪行和判斷標準。",
+          label: "",
+          reason: "危險駕駛",
+          fine: "罰款$25,000及監禁三年",
           quote: "第37(1)條：「任何人在道路上危險駕駛汽車，即屬犯罪——(a)一經循公訴程序定罪，可處第4級罰款及監禁3年；(b)一經循簡易程序定罪，可處第3級罰款及監禁12個月。」第37(4)條：「如——(a)某人駕駛汽車的方式，遠遜於一個合格而謹慎的駕駛人會被期望達到的水平；及(b)對一個合格而謹慎的駕駛人而言，該人以該方式駕駛汽車會屬危險，會是顯然易見的，該人須視為屬第(1)款所指的危險駕駛。」第37(6)條：「就第(4)及(5)款而言，危險指對任何人造成損傷或對財產造成嚴重損壞的危險。」",
           penalty: "第37(1)條的最高罰則是循公訴程序定罪的第4級罰款及監禁3年。第37(2D)條：「如某人犯第(1)款所訂罪行而其犯罪情節特別嚴重，則第(1)款列明的該罪行的最高罰款額及監禁期，以及第(2A)及(2B)款列明的該罪行的駕駛資格取消的最短期間，各增加50%。」" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374!zh-Hant-HK/s37",
@@ -2137,7 +2191,9 @@
         },
         "time": {
           head: "第237章《定額罰款(交通違例事項)條例》第4條",
-          label: "法例沒有「超時佔用車道」這項罪名。最接近的是汽車停放以致造成不必要障礙。",
+          label: "",
+          reason: "造成不必要障礙",
+          fine: "定額罰款$320",
           quote: "第4條：「任何人均不得致使或允許任何汽車停放於道路上，以致該汽車停放的位置，或在當時的情形或情況下，相當可能對該道路造成不必要的障礙，或對其他使用該道路的人造成不必要的危險。」",
           penalty: "第13條：「凡違反第4、5、6、7、8、9、10或11(1)條的條文，均須繳付定額罰款，數額為$200或由立法會藉決議訂明的較大數額。」編輯附註：「1994年第109號法律公告訂明，由1994年6月1日起，違反第4、5、6、7、8、9、10或11(1)條的任何條文的定額罰款為$320(見第237章，附屬法例B)。」",
           href: "https://www.elegislation.gov.hk/hk/cap237!zh-Hant-HK/s4",
@@ -2152,7 +2208,7 @@
           kind: "lock",
           law: held ? "lock-stop" : "lock-go",
           kicker: "出局",
-          title: held ? "要保持停止" : "要保持通行",
+          title: "",
           detail: held
             ? "個紅綠燈壞咗，要保持停止，你放手咗。壞咗都要停，放手即係唔停，一樣可以當違例罰。"
             : "個紅綠燈壞咗，要保持通行，你按住咗。壞咗都要行，按住即係阻住，後面排到爆都可以告你。",
@@ -2173,7 +2229,7 @@
           kind: "event",
           law: "event-" + (id === "spidey" || id === "wind" ? id : "grandma"),
           kicker: "喇喇喇 嚇死人咩",
-          title: "這時必須停止",
+          title: "",
           detail: detail,
           meta: "進度 " + Math.floor(progress) + "%"
         };
@@ -2216,7 +2272,7 @@
           kind: "move",
           law: law,
           kicker: "出局",
-          title: "這時必須停止",
+          title: "",
           detail: detail,
           meta: "進度 " + Math.floor(progress) + "%"
         };
@@ -2235,7 +2291,7 @@
           kind: "time",
           law: "time",
           kicker: "時間到",
-          title: "還沒抵達終點",
+          title: "",
           detail: detail,
           meta: "進度 " + Math.floor(progress) + "%"
         };
@@ -2581,12 +2637,18 @@
           card.dataset.kind = cardModel.kind;
           setText(cardKicker, cardModel.kicker);
           setText(cardTitle, cardModel.title);
+          cardTitle.hidden = cardModel.kind === "lose";
           setText(cardDetail, cardModel.detail);
           setText(cardMeta, cardModel.meta);
           cardMeta.hidden = cardModel.meta === "";
           setText(cardBtn, cardModel.btn);
           var showStop = cardModel.kind === "lose";
           stopLine.hidden = !showStop;
+          ticket.hidden = !showStop;
+          if (showStop && result && result.law && LAW[result.law]) {
+            setText(ticketReason, LAW[result.law].reason);
+            setText(ticketFine, LAW[result.law].fine);
+          }
           lawBtn.hidden = !showStop;
           lawPanel.hidden = !showStop || !lawOpen;
           setText(lawBtn, lawOpen ? "收起" : "了解更多");
@@ -2614,6 +2676,8 @@
           lawOpen = false;
           replayBtn.hidden = true;
           stopLine.hidden = true;
+          ticket.hidden = true;
+          cardTitle.hidden = false;
           lawBtn.hidden = true;
           lawPanel.hidden = true;
         }
