@@ -593,6 +593,7 @@
       box-shadow: 3px 3px 0 #171b1f;
     }
     #menu .lvl-best { margin: 4px 0 12px; color: #3a342c; font-size: 14px; font-weight: 700; }
+    #menu .lvl-sub { margin: 2px 2px 8px; color: #3a342c; font-size: 13px; font-weight: 700; line-height: 1.35; }
     #replayBtn {
       width: 100%;
       height: 48px;
@@ -832,6 +833,9 @@
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
       <button type="button" data-level="event">突發事件</button>
       <p class="lvl-best" id="bestEvent">尚無紀錄</p>
+      <button type="button" data-level="final">終極混合</button>
+      <p class="lvl-sub">反轉、燈壞、突發全部出現</p>
+      <p class="lvl-best" id="bestFinal">尚無紀錄</p>
     </div>
 
     <div id="overlay" hidden data-no-brake>
@@ -931,6 +935,27 @@
             { t: 17.6, signal: "red", rule: "normal" },
             { t: 20.2, signal: "green", rule: "normal" }
           ]
+        },
+        final: {
+          name: "終極混合", yellow: 0.5, react: 0.5, move: 11.2, locks: [
+            { warn: 11.6, start: 11.6, end: 14.6 }
+          ],
+          events: [
+            { t: 5.3, react: 0.6, dur: 1.8, id: "grandma" },
+            { t: 16.0, react: 0.6, dur: 1.8, id: "spidey" },
+            { t: 22.2, react: 0.6, dur: 1.8, id: "wind" }
+          ],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 2.4, signal: "red", rule: "normal" },
+            { t: 4.6, signal: "green", rule: "normal" },
+            { t: 8.6, signal: "red", rule: "reverse" },
+            { t: 11.0, signal: "green", rule: "reverse" },
+            { t: 13.6, signal: "red", rule: "reverse" },
+            { t: 15.2, signal: "green", rule: "normal" },
+            { t: 19.2, signal: "red", rule: "normal" },
+            { t: 21.4, signal: "green", rule: "normal" }
+          ]
         }
       };
       var EVENT_COPY = {
@@ -958,6 +983,11 @@
         ],
         event: [
           { kind: "release", signal: "green", rule: "normal", text: "放開，方塊往前走。" },
+          { kind: "event", event: "grandma", signal: "green", rule: "normal", text: "阿婆跌橙。立刻按住。" }
+        ],
+        final: [
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" },
+          { kind: "lock", force: false, signal: "green", rule: "normal", text: "紅邊亮起就保持通行。" },
           { kind: "event", event: "grandma", signal: "green", rule: "normal", text: "阿婆跌橙。立刻按住。" }
         ]
       };
@@ -1043,7 +1073,7 @@
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore() };
+      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore(), final: blankScore() };
       function slot() { return bests[levelId]; }
 
       function applyLevel(id) {
@@ -1106,7 +1136,7 @@
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
           if (data.v === 2 && data.levels) {
-            ["normal", "reverse", "lock", "mix", "event"].forEach(function (key) {
+            ["normal", "reverse", "lock", "mix", "event", "final"].forEach(function (key) {
               var item = data.levels[key];
               if (!item) return;
               if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
@@ -1138,7 +1168,7 @@
       }
 
       function bestLabel() {
-        if (mode === "menu") return "四個關卡都可直接玩";
+        if (mode === "menu") return "可直接選關";
         return LEVELS[levelId].name + " · " + scoreText(slot());
       }
 
@@ -1148,6 +1178,7 @@
         setText(document.getElementById("bestLock"), scoreText(bests.lock));
         setText(document.getElementById("bestMix"), scoreText(bests.mix));
         setText(document.getElementById("bestEvent"), scoreText(bests.event));
+        setText(document.getElementById("bestFinal"), scoreText(bests.final));
       }
 
       function rememberProgress() {
