@@ -634,10 +634,13 @@
       color: #171b1f;
     }
     #lawHead { margin-top: 0; font-weight: 700; }
-    #lawLink { display: inline-block; margin-top: 12px; font-size: 16px; font-weight: 700; color: #171b1f; }
+    #lawLink, #lawMore a { display: inline-block; margin-top: 12px; font-size: 16px; font-weight: 700; color: #171b1f; }
+    #lawMore p { margin-top: 12px; font-size: 16px; line-height: 1.45; }
+    #lawMore .law-extra-head { font-weight: 700; }
+    .ticket-row b { flex: 1; min-width: 0; text-align: right; white-space: pre-line; }
     .law-note { margin-top: 12px; font-size: 13px; line-height: 1.4; }
     #cardMeta { font-weight: 700; }
-    #cardBtn, #menuBtn, #startBtn, #menu button {
+    #cardBtn, #menuBtn, #startBtn, #menu button[data-level] {
       width: 100%;
       height: 52px;
       margin-top: 16px;
@@ -655,16 +658,59 @@
       z-index: 7;
       display: flex;
       flex-direction: column;
-      justify-content: safe center;
+      justify-content: flex-start;
       gap: 0;
-      padding: 16px;
-      overflow-y: auto;
+      padding: 16px 16px 12px;
+      overflow: hidden;
       background: #f4f0e6;
       color: #171b1f;
       color-scheme: light;
     }
-    #menu h2 { font-size: 26px; font-weight: 700; margin: 0 0 16px; color: #171b1f; }
-    #menu button {
+    #menu h2 { font-size: 26px; font-weight: 700; margin: 0 0 16px; color: #171b1f; flex: none; }
+    #menuPages {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      touch-action: pan-y;
+    }
+    .menu-pager {
+      flex: none;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      background: #f4f0e6;
+    }
+    #menuPrev, #menuNext {
+      width: 100%;
+      height: 40px;
+      margin: 0;
+      padding: 0 8px;
+      border-radius: 12px;
+      border: 2px solid #171b1f;
+      background: #fffdf8;
+      color: #171b1f;
+      box-shadow: none;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    #menuNext { justify-self: end; }
+    #menuPrev:disabled, #menuNext:disabled { opacity: 0.38; }
+    .menu-dots { display: flex; align-items: center; gap: 8px; }
+    .menu-dot {
+      width: 12px;
+      height: 12px;
+      margin: 0;
+      padding: 0;
+      border-radius: 99px;
+      border: 2px solid #171b1f;
+      background: transparent;
+      box-shadow: none;
+    }
+    .menu-dot[aria-current="true"] { background: #171b1f; }
+    #menu button[data-level] {
       min-height: 46px;
       height: auto;
       margin: 0;
@@ -768,12 +814,13 @@
       #stopLine { font-size: 26px; }
       #ticket { padding: 10px 12px; }
       .ticket-head, .ticket-row, .ticket-fine { font-size: 14px; }
-      #cardDetail, #lawQuote, #lawPenalty, #lawLabel, #lawHead { font-size: 15px; }
+      #cardDetail, #lawQuote, #lawPenalty, #lawLabel, #lawHead, #lawMore p, #lawMore a { font-size: 15px; }
       #lawPanel { max-height: 34vh; }
       #cardBtn, #menuBtn, #startBtn { height: 44px; margin-top: 12px; }
-      #menu { padding: 12px 16px 16px; }
+      #menu { padding: 12px 16px 10px; }
       #menu h2 { font-size: 22px; margin-bottom: 12px; }
-      #menu button { min-height: 40px; height: auto; margin: 0; padding: 8px 12px; font-size: 16px; }
+      #menu button[data-level] { min-height: 40px; height: auto; margin: 0; padding: 8px 12px; font-size: 16px; }
+      #menuPrev, #menuNext { height: 36px; font-size: 14px; }
       #menu .lvl-meta { margin: 12px 0 12px; font-size: 12px; }
     }
     @container (max-height: 260px) {
@@ -966,22 +1013,40 @@
       </div>
     </div>
 
-    <div id="menu" data-no-brake>
+    <div id="menu" data-no-brake data-page="1">
       <h2>選擇關卡</h2>
-      <button type="button" data-level="normal">紅綠燈</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestNormal">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
-      <button type="button" data-level="reverse">倒轉地球</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestReverse">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
-      <button type="button" data-level="lock">你個嘢壞咗</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestLock">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
-      <button type="button" data-level="mix">一時一樣</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestMix">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
-      <button type="button" data-level="event">喂喂喂 嚇死人咩</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestEvent">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
-      <button type="button" data-level="final">吓～又來過？</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestFinal">尚無紀錄</span><span class="lvl-limit">40 秒</span></p>
-      <button type="button" data-level="challenge">頂～邊有可能</button>
-      <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
+      <div id="menuPages">
+        <div class="menu-page" data-menu-page="1">
+          <button type="button" data-level="normal">紅綠燈</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestNormal">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="reverse">倒轉地球</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestReverse">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="lock">你個嘢壞咗</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestLock">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="mix">一時一樣</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestMix">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="event">喂喂喂 嚇死人咩</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestEvent">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="final">吓～又來過？</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestFinal">尚無紀錄</span><span class="lvl-limit">40 秒</span></p>
+          <button type="button" data-level="challenge">頂～邊有可能</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
+        </div>
+        <div class="menu-page" id="menuPage2" data-menu-page="2" hidden>
+          <div class="menu-slot">
+            <button type="button" data-level="flipfest">反轉極樂園</button>
+            <p class="lvl-meta"><span class="lvl-best" id="bestFlipfest">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="menu-pager">
+        <button id="menuPrev" type="button" disabled>上一頁</button>
+        <div class="menu-dots" role="tablist" aria-label="關卡頁">
+          <button class="menu-dot" type="button" data-menu-page="1" aria-label="第 1 頁" aria-current="true"></button>
+          <button class="menu-dot" type="button" data-menu-page="2" aria-label="第 2 頁"></button>
+        </div>
+        <button id="menuNext" type="button">下一頁</button>
+      </div>
     </div>
 
     <div id="overlay" hidden data-no-brake>
@@ -1003,6 +1068,7 @@
           <p id="lawQuote"></p>
           <p id="lawPenalty"></p>
           <a id="lawLink" target="_blank" rel="noopener noreferrer"></a>
+          <div id="lawMore" hidden></div>
           <p class="law-note">條文摘自電子版香港法例，只供參考，以官方版本為準。</p>
         </div>
         <button id="cardBtn" type="button">繼續</button>
@@ -1020,6 +1086,7 @@
       var LOCK_ONSET = 0.45;
       var EVENT_LEAD = 0.45;
       var STORAGE_KEY = "reverse-traffic-v1";
+      var MENU_PAGE_KEY = "reverse-traffic-menu-page";
       var LEVELS = {
         normal: {
           name: "紅綠燈", yellow: 0.65, react: 0.38, move: 12.91, locks: [],
@@ -1125,6 +1192,20 @@
             { t: 0, signal: "green", rule: "normal", safe: true },
             { t: 4, signal: "red", rule: "normal" }
           ]
+        },
+        flipfest: {
+          name: "反轉極樂園", yellow: 0.62, react: 0.36, limit: 30, move: 13.5, locks: [], events: [],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4.0, signal: "green", rule: "reverse" },
+            { t: 7.4, signal: "green", rule: "normal" },
+            { t: 10.8, signal: "green", rule: "reverse" },
+            { t: 14.2, signal: "green", rule: "normal" },
+            { t: 17.6, signal: "green", rule: "reverse" },
+            { t: 21.0, signal: "green", rule: "normal" },
+            { t: 24.4, signal: "green", rule: "reverse" },
+            { t: 27.6, signal: "green", rule: "normal" }
+          ]
         }
       };
       var EVENT_COPY = {
@@ -1158,6 +1239,10 @@
           { kind: "brake", signal: "green", rule: "reverse", text: "反轉：綠燈要停。" },
           { kind: "lock", force: false, signal: "green", rule: "normal", text: "紅邊亮起就保持通行。" },
           { kind: "event", event: "grandma", signal: "green", rule: "normal", text: "阿婆跌橙。立刻按住。" }
+        ],
+        flipfest: [
+          { kind: "release", signal: "green", rule: "normal", text: "正常：放開，方塊往前走。" },
+          { kind: "brake", signal: "green", rule: "reverse", text: "反轉：同一盞綠燈要停。規則會轉得密。" }
         ]
       };
       TEACH.challenge = TEACH.final;
@@ -1219,10 +1304,14 @@
       var lawQuote = document.getElementById("lawQuote");
       var lawPenalty = document.getElementById("lawPenalty");
       var lawLink = document.getElementById("lawLink");
+      var lawMore = document.getElementById("lawMore");
       var cardBtn = document.getElementById("cardBtn");
       var replayBtn = document.getElementById("replayBtn");
       var menuBtn = document.getElementById("menuBtn");
       var menu = document.getElementById("menu");
+      var menuPages = document.getElementById("menuPages");
+      var menuPrev = document.getElementById("menuPrev");
+      var menuNext = document.getElementById("menuNext");
       var teachBar = document.getElementById("teachBar");
       var teachText = document.getElementById("teachText");
       var startBtn = document.getElementById("startBtn");
@@ -1251,11 +1340,26 @@
       var result = null;
       var overlayOpen = false;
       var lawOpen = false;
+      var lawShown = "";
       var dashOffset = 0;
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore(), final: blankScore(), challenge: blankScore() };
+      var SCORE_KEYS = ["normal", "reverse", "lock", "mix", "event", "final", "challenge", "flipfest"];
+      var MENU_BEST = {
+        normal: "bestNormal",
+        reverse: "bestReverse",
+        lock: "bestLock",
+        mix: "bestMix",
+        event: "bestEvent",
+        final: "bestFinal",
+        challenge: "bestChallenge",
+        flipfest: "bestFlipfest"
+      };
+      var bests = {};
+      SCORE_KEYS.forEach(function (key) { bests[key] = blankScore(); });
+      var menuPage = 1;
+      var menuIgnoreClick = false;
       function slot() { return bests[levelId]; }
 
       function roundLimit() {
@@ -2012,7 +2116,7 @@
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
           if (data.v === 2 && data.levels) {
-            ["normal", "reverse", "lock", "mix", "event", "final", "challenge"].forEach(function (key) {
+            SCORE_KEYS.forEach(function (key) {
               var item = data.levels[key];
               if (!item) return;
               if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
@@ -2056,13 +2160,10 @@
       }
 
       function paintMenu() {
-        setText(document.getElementById("bestNormal"), menuScoreText(bests.normal));
-        setText(document.getElementById("bestReverse"), menuScoreText(bests.reverse));
-        setText(document.getElementById("bestLock"), menuScoreText(bests.lock));
-        setText(document.getElementById("bestMix"), menuScoreText(bests.mix));
-        setText(document.getElementById("bestEvent"), menuScoreText(bests.event));
-        setText(document.getElementById("bestFinal"), menuScoreText(bests.final));
-        setText(document.getElementById("bestChallenge"), menuScoreText(bests.challenge));
+        SCORE_KEYS.forEach(function (key) {
+          var el = document.getElementById(MENU_BEST[key]);
+          if (el && bests[key]) setText(el, menuScoreText(bests[key]));
+        });
       }
 
       function rememberProgress() {
@@ -2162,12 +2263,28 @@
         "event-grandma": {
           head: "第374G章《道路交通(交通管制)規例》第31條",
           label: "",
-          reason: "不讓行人優先",
-          fine: "罰款$10,000及監禁六個月",
+          reason: "危險駕駛引致他人死亡／\n不讓行人優先",
+          fine: "最高罰款 $50,000 及監禁 10 年",
           quote: "第31條：「在斑馬綫上的每一名行人，當在斑馬綫上時，較任何車輛享有優先權；如車輛或其任何部分駛至斑馬綫或在斑馬綫上之前，行人已在該斑馬綫上，則該車輛的司機須讓該行人先行︰但如在斑馬綫上有一個行人安全島或中央分道帶，則位於行人安全島或中央分道帶每一邊的斑馬綫，須分別視為一條獨立的斑馬綫。」",
           penalty: REG61 + "第31條在第61(1)條的名單內。最高罰則是其後再次被定罪的第3級罰款及監禁6個月。" + FINE_LEVELS,
           href: "https://www.elegislation.gov.hk/hk/cap374G!zh-Hant-HK/s31",
-          link: "第374G章第31條"
+          link: "第374G章第31條",
+          extra: [
+            {
+              head: "第374章《道路交通條例》第36條",
+              quote: "第36(1)條：「任何人在道路上危險駕駛汽車引致他人死亡，即屬犯罪——(a)一經循公訴程序定罪，可處第5級罰款及監禁10年；(b)一經循簡易程序定罪，可處第4級罰款及監禁2年。」",
+              penalty: "第36(2)條：「如法庭或裁判官裁定任何人犯了第(1)款所訂的罪行，則法庭或裁判官除非基於特別理由，命令取消該人的駕駛資格一段較短期間，或命令不取消該人的駕駛資格，否則須命令按照第(2A)或(2B)款取消該人的駕駛資格。」第36(2A)條：「在不抵觸第(2B)款的條文下——(a)(如屬首次被定罪)上述的人的駕駛資格須取消至少5年；(b)(如屬再次被定罪)上述的人的駕駛資格須取消至少10年。」第36(2D)條：「如某人犯第(1)款所訂罪行而其犯罪情節特別嚴重，則第(1)款列明的該罪行的最高罰款額及監禁期，以及第(2A)及(2B)款列明的該罪行的駕駛資格取消的最短期間，各增加50%，而第(2C)款須據此解釋。」第36(1)(a)條的最高罰則是循公訴程序定罪的第5級罰款及監禁10年。" + FINE_LEVELS,
+              href: "https://www.elegislation.gov.hk/hk/cap374!zh-Hant-HK/s36",
+              link: "第374章第36條"
+            },
+            {
+              head: "第374章《道路交通條例》第36A條",
+              quote: "第36A(1)條：「任何人在道路上危險駕駛汽車，引致他人身體受嚴重傷害，即屬犯罪——(a)一經循公訴程序定罪，可處第5級罰款及監禁7年；(b)一經循簡易程序定罪，可處第4級罰款及監禁2年。」",
+              penalty: "第36A(2)條：「如法庭或裁判官裁定任何人犯第(1)款所訂罪行，則法庭或裁判官除非基於特別理由，命令取消該人的駕駛資格為期一段較短期間，或命令不取消該人的駕駛資格，否則須命令按照第(3)或(4)款取消該人的駕駛資格。」第36A(3)條：「在不抵觸第(4)款的條文下，上述的人的駕駛資格須取消的期間為——(a)(如屬首次被定罪)至少2年；(b)(如屬再次被定罪)至少5年。」第36A(6)條：「如某人犯第(1)款所訂罪行而其犯罪情節特別嚴重，則第(1)款列明的該罪行的最高罰款額及監禁期，以及第(3)及(4)款列明的該罪行的駕駛資格取消的最短期間，各增加50%，而第(5)款須據此解釋。」第36A(1)(a)條的最高罰則是循公訴程序定罪的第5級罰款及監禁7年。" + FINE_LEVELS,
+              href: "https://www.elegislation.gov.hk/hk/cap374!zh-Hant-HK/s36A",
+              link: "第374章第36A條"
+            }
+          ]
         },
         "event-spidey": {
           head: "第374章《道路交通條例》第38條",
@@ -2661,6 +2778,10 @@
             setText(lawPenalty, law.penalty);
             lawLink.href = law.href;
             setText(lawLink, law.link);
+            if (lawShown !== result.law) {
+              lawShown = result.law;
+              paintLawExtras(law.extra || []);
+            }
           }
           replayBtn.hidden = !(mode === "won" || mode === "lost");
           if (!overlayOpen) {
@@ -2680,7 +2801,65 @@
           cardTitle.hidden = false;
           lawBtn.hidden = true;
           lawPanel.hidden = true;
+          lawShown = "";
+          lawMore.replaceChildren();
+          lawMore.hidden = true;
         }
+      }
+
+      function paintLawExtras(extras) {
+        lawMore.replaceChildren();
+        if (!extras.length) {
+          lawMore.hidden = true;
+          return;
+        }
+        lawMore.hidden = false;
+        for (var i = 0; i < extras.length; i++) {
+          var item = extras[i];
+          var head = document.createElement("p");
+          head.className = "law-extra-head";
+          head.textContent = item.head;
+          var quote = document.createElement("p");
+          quote.textContent = item.quote;
+          var penalty = document.createElement("p");
+          penalty.textContent = item.penalty;
+          var link = document.createElement("a");
+          link.href = item.href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = item.link;
+          lawMore.appendChild(head);
+          lawMore.appendChild(quote);
+          lawMore.appendChild(penalty);
+          lawMore.appendChild(link);
+        }
+      }
+
+      function readMenuPage() {
+        try {
+          if (localStorage.getItem(MENU_PAGE_KEY) === "2") menuPage = 2;
+        } catch (err) {
+          menuPage = 1;
+        }
+      }
+
+      function setMenuPage(page) {
+        menuPage = page === 2 ? 2 : 1;
+        var pages = menu.querySelectorAll(".menu-page");
+        for (var i = 0; i < pages.length; i++) {
+          pages[i].hidden = Number(pages[i].getAttribute("data-menu-page")) !== menuPage;
+        }
+        var dots = menu.querySelectorAll(".menu-dot");
+        for (var d = 0; d < dots.length; d++) {
+          var on = Number(dots[d].getAttribute("data-menu-page")) === menuPage;
+          if (on) dots[d].setAttribute("aria-current", "true");
+          else dots[d].removeAttribute("aria-current");
+        }
+        menu.dataset.page = String(menuPage);
+        menuPrev.disabled = menuPage === 1;
+        menuNext.disabled = menuPage === 2;
+        if (menuPages) menuPages.scrollTop = 0;
+        try { localStorage.setItem(MENU_PAGE_KEY, String(menuPage)); } catch (err) {}
       }
 
       function showMenu() {
@@ -2688,6 +2867,7 @@
         result = null;
         teach.ready = false;
         releaseInputs();
+        setMenuPage(menuPage);
         render();
       }
 
@@ -2866,9 +3046,38 @@
       menuBtn.addEventListener("click", function () { showMenu(); });
       startBtn.addEventListener("click", function () { beginChallenge(); });
       document.getElementById("teachMenu").addEventListener("click", function () { showMenu(); });
+      menuPrev.addEventListener("click", function () { setMenuPage(menuPage - 1); });
+      menuNext.addEventListener("click", function () { setMenuPage(menuPage + 1); });
+      var menuDots = menu.querySelectorAll(".menu-dot");
+      for (var di = 0; di < menuDots.length; di++) {
+        menuDots[di].addEventListener("click", function (event) {
+          setMenuPage(Number(event.currentTarget.getAttribute("data-menu-page")));
+        });
+      }
+      var menuSwipe = null;
+      menuPages.addEventListener("pointerdown", function (event) {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        menuSwipe = { x: event.clientX, y: event.clientY, id: event.pointerId };
+      });
+      menuPages.addEventListener("pointerup", function (event) {
+        if (!menuSwipe || menuSwipe.id !== event.pointerId) return;
+        var dx = event.clientX - menuSwipe.x;
+        var dy = event.clientY - menuSwipe.y;
+        menuSwipe = null;
+        if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy)) return;
+        menuIgnoreClick = true;
+        setMenuPage(menuPage + (dx < 0 ? 1 : -1));
+        setTimeout(function () { menuIgnoreClick = false; }, 0);
+      });
+      menuPages.addEventListener("pointercancel", function () { menuSwipe = null; });
       var levelButtons = menu.querySelectorAll("button[data-level]");
       for (var bi = 0; bi < levelButtons.length; bi++) {
         levelButtons[bi].addEventListener("click", function (event) {
+          if (menuIgnoreClick) {
+            menuIgnoreClick = false;
+            event.preventDefault();
+            return;
+          }
           beginTeach(event.currentTarget.getAttribute("data-level"));
         });
       }
@@ -2904,6 +3113,7 @@
 
       applyLevel("normal");
       loadBest();
+      readMenuPage();
       showMenu();
       requestAnimationFrame(frame);
 
