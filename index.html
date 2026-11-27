@@ -1518,6 +1518,7 @@
         },
         rain: {
           name: "家吓玩漂移咩", yellow: 0.75, react: 0.42, limit: 35, move: 18.7,
+          flipLead: 1.3, flipGrace: 0.72,
           slide: { accel: 5.8, decel: 1.52 },
           locks: [
             { warn: 16.75, start: 16.75, end: 20.05 }
@@ -1585,6 +1586,7 @@
       TEACH.challenge = TEACH.final;
       var YELLOW = 0.5;
       var REACT = 0.35;
+      var FLIP_GRACE = 0;
       var MOVE_RATE = 100 / 13.2;
       var LOCKS = [];
       var EVENTS = [];
@@ -1730,6 +1732,8 @@
         var react = Math.max(HELL_FLOOR_GRACE, round3((spec.react == null ? 0.35 : spec.react) / HELL_SPEED));
         out.yellow = yellow;
         out.react = react;
+        if (spec.flipLead) out.flipLead = Math.max(HELL_FLOOR_YELLOW, round3(spec.flipLead / HELL_SPEED));
+        if (spec.flipGrace) out.flipGrace = Math.max(HELL_FLOOR_GRACE, round3(spec.flipGrace / HELL_SPEED));
         out.limit = round3((spec.limit || 30) / HELL_SPEED);
         out.move = (spec.move || 13.2) / HELL_SPEED;
         var lights = [];
@@ -1740,7 +1744,8 @@
           lights.push(light);
         }
         for (var j = 1; j < lights.length; j++) {
-          var minGap = round3(yellow + 0.02);
+          var flipGap = lights[j].rule !== lights[j - 1].rule && out.flipLead;
+          var minGap = round3((flipGap ? out.flipLead : yellow) + 0.02);
           if (lights[j].t - lights[j - 1].t < minGap) lights[j].t = round3(lights[j - 1].t + minGap);
         }
         out.lights = lights;
@@ -2499,6 +2504,7 @@
         levelId = id;
         YELLOW = spec.yellow;
         REACT = spec.react;
+        FLIP_GRACE = spec.flipGrace || 0;
         MOVE_RATE = 100 / spec.move;
         LOCKS = spec.locks || [];
         EVENTS = spec.events || [];
@@ -2507,14 +2513,24 @@
         TIME_LIMIT = spec.limit || 30;
         PHASES = [];
         for (var i = 0; i < spec.lights.length; i++) {
+          var flip = i > 0 && spec.lights[i].rule !== spec.lights[i - 1].rule;
           if (i > 0) {
+            var lead = flip && spec.flipLead ? spec.flipLead : spec.yellow;
             PHASES.push({
-              t: Math.round((spec.lights[i].t - spec.yellow) * 1000) / 1000,
+              t: Math.round((spec.lights[i].t - lead) * 1000) / 1000,
               signal: "yellow",
-              rule: spec.lights[i - 1].rule
+              rule: spec.lights[i - 1].rule,
+              flip: flip
             });
           }
-          PHASES.push(spec.lights[i]);
+          if (flip) {
+            var flipped = {};
+            for (var fk in spec.lights[i]) if (Object.prototype.hasOwnProperty.call(spec.lights[i], fk)) flipped[fk] = spec.lights[i][fk];
+            flipped.flip = true;
+            PHASES.push(flipped);
+          } else {
+            PHASES.push(spec.lights[i]);
+          }
         }
       }
 
@@ -3048,7 +3064,9 @@
         var info = phaseAt(elapsed);
         if (info.index !== phaseIndex) {
           phaseIndex = info.index;
-          if (!info.phase.safe && info.phase.signal !== "yellow") graceUntil = info.phase.t + REACT;
+          if (!info.phase.safe && info.phase.signal !== "yellow") {
+            graceUntil = info.phase.t + (info.phase.flip && FLIP_GRACE ? FLIP_GRACE : REACT);
+          }
         }
         var wasResume = resumeGraceLeft > 0;
         if (resumeGraceLeft > 0) resumeGraceLeft = Math.max(0, resumeGraceLeft - dt);
@@ -3057,7 +3075,7 @@
         if (!lockActive) {
           for (var li = 0; li < LOCKS.length; li++) {
             if (elapsed - dt < LOCKS[li].end && elapsed >= LOCKS[li].end) {
-              graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, simScale(0.45)));
+              graceUntil = Math.max(graceUntil, elapsed + Math.max(REACT, SLIDE ? (1 - 0.02) / SLIDE.decel : 0, simScale(0.45)));
             }
           }
           seenLock = -1;
@@ -3197,7 +3215,8 @@
         }
         var info = phaseAt(elapsed);
         if (info.phase.signal === "yellow" && info.next) {
-          return Math.max(0, Math.min(1, (info.next.t - elapsed) / YELLOW));
+          var span = Math.max(0.05, info.next.t - info.phase.t);
+          return Math.max(0, Math.min(1, (info.next.t - elapsed) / span));
         }
         return 0;
       }
