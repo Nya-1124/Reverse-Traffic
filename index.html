@@ -578,22 +578,25 @@
       z-index: 7;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: safe center;
       gap: 0;
-      padding: 28px 18px;
+      padding: 16px 18px 18px;
+      overflow-y: auto;
       background: #f4f0e6;
       color: #171b1f;
       color-scheme: light;
     }
-    #menu h2 { font-size: 28px; font-weight: 700; margin: 0 0 12px; color: #171b1f; }
+    #menu h2 { font-size: 26px; font-weight: 700; margin: 0 0 8px; color: #171b1f; }
     #menu button {
+      height: 46px;
+      margin-top: 4px;
       background: #fffdf8;
       color: #171b1f;
       border: 2px solid #171b1f;
       box-shadow: 3px 3px 0 #171b1f;
     }
-    #menu .lvl-best { margin: 4px 0 12px; color: #3a342c; font-size: 14px; font-weight: 700; }
-    #menu .lvl-sub { margin: 2px 2px 8px; color: #3a342c; font-size: 13px; font-weight: 700; line-height: 1.35; }
+    #menu .lvl-best { margin: 2px 0 6px; color: #3a342c; font-size: 13px; font-weight: 700; }
+    #menu .lvl-sub { margin: 1px 2px 4px; color: #3a342c; font-size: 13px; font-weight: 700; line-height: 1.3; }
     #replayBtn {
       width: 100%;
       height: 48px;
@@ -670,7 +673,12 @@
       #preLock, #lockCard { padding: 6px 8px; }
       .card { padding: 12px 14px 12px; }
       #cardTitle { font-size: 26px; }
-      #cardBtn, #menuBtn, #startBtn, #menu button { height: 44px; margin-top: 8px; }
+      #cardBtn, #menuBtn, #startBtn { height: 44px; margin-top: 8px; }
+      #menu { padding: 10px 14px 12px; }
+      #menu h2 { font-size: 22px; margin-bottom: 4px; }
+      #menu button { height: 40px; margin-top: 2px; }
+      #menu .lvl-best { margin: 1px 0 4px; font-size: 12px; }
+      #menu .lvl-sub { margin: 0 2px 2px; font-size: 12px; }
     }
     @container (max-height: 260px) {
       #preNum { font-size: 44px; }
@@ -827,7 +835,7 @@
       <p class="lvl-best" id="bestNormal">尚無紀錄</p>
       <button type="button" data-level="reverse">反轉</button>
       <p class="lvl-best" id="bestReverse">尚無紀錄</p>
-      <button type="button" data-level="lock">鎖定</button>
+      <button type="button" data-level="lock">燈壞了</button>
       <p class="lvl-best" id="bestLock">尚無紀錄</p>
       <button type="button" data-level="mix">混合挑戰</button>
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
@@ -836,6 +844,9 @@
       <button type="button" data-level="final">終極混合</button>
       <p class="lvl-sub">每次隨機，限時40秒</p>
       <p class="lvl-best" id="bestFinal">尚無紀錄</p>
+      <button type="button" data-level="challenge">終極挑戰</button>
+      <p class="lvl-sub">60秒・高難度</p>
+      <p class="lvl-best" id="bestChallenge">尚無紀錄</p>
     </div>
 
     <div id="overlay" hidden data-no-brake>
@@ -886,7 +897,7 @@
           ]
         },
         lock: {
-          name: "鎖定", yellow: 0.55, react: 0.35, move: 12.4, locks: [
+          name: "燈壞了", yellow: 0.55, react: 0.35, move: 12.4, locks: [
             { warn: 6.6, start: 9.6, end: 12.35 },
             { warn: 15.3, start: 18.3, end: 21.35 }
           ],
@@ -948,6 +959,14 @@
             { t: 4, signal: "red", rule: "normal" },
             { t: 8, signal: "green", rule: "normal" }
           ]
+        },
+        challenge: {
+          name: "終極挑戰", yellow: 0.38, react: 0.32, limit: 60, move: 24, locks: [],
+          events: [],
+          lights: [
+            { t: 0, signal: "green", rule: "normal", safe: true },
+            { t: 4, signal: "red", rule: "normal" }
+          ]
         }
       };
       var EVENT_COPY = {
@@ -983,6 +1002,7 @@
           { kind: "event", event: "grandma", signal: "green", rule: "normal", text: "阿婆跌橙。立刻按住。" }
         ]
       };
+      TEACH.challenge = TEACH.final;
       var YELLOW = 0.5;
       var REACT = 0.35;
       var MOVE_RATE = 100 / 13.2;
@@ -1065,11 +1085,11 @@
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore(), final: blankScore() };
+      var bests = { normal: blankScore(), reverse: blankScore(), lock: blankScore(), mix: blankScore(), event: blankScore(), final: blankScore(), challenge: blankScore() };
       function slot() { return bests[levelId]; }
 
       function roundLimit() {
-        return levelId === "final" ? 40 : 30;
+        return TIME_LIMIT;
       }
 
       function mulberry32(seed) {
@@ -1161,15 +1181,29 @@
             if (elapsed - lk.start >= onset && snap === null) snap = braking;
           }
           var want;
-          if (ev && ev.phase === "stop") want = true;
-          else if (ev) want = (elapsed - ev.event.t) >= (mode === "slow" ? 0.5 : 0.08);
-          else if (lk && snap !== null) want = snap;
+          if (ev && ev.phase === "stop" && mode !== "prompt" && mode !== "hesitant") want = true;
+          else if (ev) {
+            var evDelay = mode === "slow" ? 0.5 : mode === "prompt" ? 0.28 : mode === "hesitant" ? 0.62 : 0.08;
+            want = (elapsed - ev.event.t) >= evDelay;
+          } else if (lk && snap !== null) want = snap;
           else if (lk) want = braking;
           else if (phase.signal === "yellow") {
             var nr = info.next ? reqOf(info.next) : "go";
-            want = nr === "stop" ? true : (mode === "slow" && age < 0.45 ? braking : false);
-          } else if (reqOf(phase) === "stop") want = mode !== "slow" || age >= 0.35 ? true : braking;
-          else want = mode === "slow" && braking && age < 0.45 ? true : false;
+            if (nr === "stop") {
+              want = mode === "prompt" ? age >= 0.12 : mode === "hesitant" ? age >= 0.33 : true;
+            } else {
+              var holdY = mode === "slow" ? 0.45 : mode === "prompt" ? 0.22 : mode === "hesitant" ? 0.55 : 0;
+              want = holdY > 0 && age < holdY ? braking : false;
+            }
+          } else if (reqOf(phase) === "stop") {
+            if (mode === "slow") want = age >= 0.35 ? true : braking;
+            else if (mode === "prompt") want = age >= 0.28 ? true : braking;
+            else if (mode === "hesitant") want = age >= 0.55 ? true : braking;
+            else want = true;
+          } else {
+            var holdGo = mode === "slow" ? 0.45 : mode === "prompt" ? 0.26 : mode === "hesitant" ? 0.6 : 0;
+            want = holdGo > 0 && braking && age < holdGo ? true : false;
+          }
           braking = want;
           var moving = !braking;
           var protectedTime = !!phase.safe || phase.signal === "yellow" || !!lk || !!ev || elapsed < grace;
@@ -1355,10 +1389,202 @@
         return draft;
       }
 
+      function auditChallenge(spec) {
+        var problems = [];
+        var limit = spec.limit || 60;
+        var yellow = spec.yellow;
+        var phases = buildPhases(spec.lights, yellow);
+        function phaseAtT(t) {
+          var idx = 0;
+          for (var i = 0; i < phases.length; i++) if (t + 1e-9 >= phases[i].t) idx = i;
+          return { phase: phases[idx], next: idx + 1 < phases.length ? phases[idx + 1] : null };
+        }
+        if (spec.lights.length < 4 || spec.lights[1].t < 3) problems.push("early-light");
+        var flips = 0;
+        for (var i = 1; i < spec.lights.length; i++) {
+          if (spec.lights[i].t - spec.lights[i - 1].t < yellow + 0.2) problems.push("lights-close");
+          if (spec.lights[i].t > limit - 2) problems.push("late-light");
+          if (spec.lights[i].rule !== spec.lights[i - 1].rule) flips++;
+        }
+        var spans = [];
+        for (var fi = 1; fi < spec.lights.length; fi++) {
+          if (spec.lights[fi].rule !== spec.lights[fi - 1].rule) {
+            spans.push({ kind: "flip", a: round3(spec.lights[fi].t - yellow), b: spec.lights[fi].t });
+          }
+        }
+        for (var li = 0; li < spec.locks.length; li++) {
+          var lk = spec.locks[li];
+          if (lk.start < 3 || lk.end > limit - 2) problems.push("lock-edge");
+          if (lk.end - lk.start < 1.35) problems.push("lock-short");
+          var changed = false;
+          for (var ci = 1; ci < spec.lights.length; ci++) {
+            var ct = spec.lights[ci].t;
+            if (ct > lk.start + 0.2 && ct < lk.end - 0.2) changed = true;
+          }
+          if (!changed) problems.push("lock-static");
+          spans.push({ kind: "lock", a: lk.start, b: lk.end });
+          var at = phaseAtT(lk.start + 0.02);
+          if (at.phase.signal === "yellow") problems.push("lock-yellow");
+        }
+        for (var ei = 0; ei < spec.events.length; ei++) {
+          var ev = spec.events[ei];
+          var vis = round3(ev.t - EVENT_LEAD);
+          var end = round3(ev.t + ev.dur);
+          if (vis < 3 || end > limit - 2) problems.push("event-edge");
+          if (ev.react < 0.45) problems.push("event-react");
+          spans.push({ kind: "event", a: vis, b: end });
+          var atE = phaseAtT(ev.t + 0.02);
+          if (atE.phase.signal === "yellow") problems.push("event-yellow");
+        }
+        spans.sort(function (a, b) { return a.a - b.a; });
+        for (var s = 1; s < spans.length; s++) {
+          if (spans[s].a < spans[s - 1].b - 0.02) problems.push("overlap");
+          else if (spans[s].a - spans[s - 1].b < 0.5) problems.push("gap");
+        }
+        if (flips < 2 || flips > 4) problems.push("flips");
+        if (spec.locks.length < 2 || spec.locks.length > 3) problems.push("locks");
+        if (spec.events.length < 3 || spec.events.length > 5) problems.push("events");
+        return problems;
+      }
+
+      function buildChallenge(rand) {
+        function ri(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
+        function rf(a, b) { return a + rand() * (b - a); }
+        var yellow = 0.38;
+        var limit = 60;
+        var nFlip = ri(2, 4);
+        var nLock = ri(2, 3);
+        var nEvent = ri(3, 5);
+        var kinds = ["grandma", "spidey", "wind"];
+        var pieces = [];
+        for (var i = 0; i < nFlip; i++) pieces.push({ type: "flip" });
+        for (var j = 0; j < nLock; j++) pieces.push({ type: "lock" });
+        for (var k = 0; k < nEvent; k++) pieces.push({ type: "event", id: kinds[ri(0, 2)] });
+        for (var s = pieces.length - 1; s > 0; s--) {
+          var swap = Math.floor(rand() * (s + 1));
+          var tmp = pieces[s]; pieces[s] = pieces[swap]; pieces[swap] = tmp;
+        }
+        var lights = [{ t: 0, signal: "green", rule: "normal", safe: true }];
+        var locks = [];
+        var evs = [];
+        var rule = "normal";
+        var signal = "green";
+        var now = 0;
+        var busyUntil = 0;
+        function goSig(r) { return r === "normal" ? "green" : "red"; }
+        function stopSig(r) { return r === "normal" ? "red" : "green"; }
+        function isGo(sig, r) { return r === "normal" ? sig === "green" : sig === "red"; }
+        function push(t, sig, r) {
+          var minT = now + yellow + 0.48;
+          if (lights.length === 1) minT = Math.max(minT, 3.2);
+          t = round3(Math.max(t, minT));
+          if (t > limit - 2.15) return false;
+          lights.push({ t: t, signal: sig, rule: r });
+          signal = sig;
+          rule = r;
+          now = t;
+          return true;
+        }
+        function fillerUntil(t) {
+          var spins = 0;
+          while (spins++ < 6) {
+            var earliest = Math.max(now + 1.28, busyUntil + yellow + 0.16);
+            if (earliest > t - 1.05) break;
+            var nt = round3(earliest + rf(0, 0.28));
+            if (nt > t - 0.95) break;
+            if (!push(nt, signal === "green" ? "red" : "green", rule)) break;
+          }
+        }
+        var startWin = 3.55;
+        var endWin = 56.4;
+        var slot = (endWin - startWin) / pieces.length;
+        for (var p = 0; p < pieces.length; p++) {
+          var piece = pieces[p];
+          var anchor = round3(startWin + slot * p + slot * 0.28 + rf(-slot * 0.08, slot * 0.08));
+          if (piece.type === "flip") {
+            fillerUntil(anchor);
+            var ft = Math.max(anchor, now + yellow + 0.55, busyUntil + yellow + 0.22);
+            if (ft > limit - 2.5) break;
+            var nextRule = rule === "normal" ? "reverse" : "normal";
+            var makeGo = rand() < 0.62;
+            if (!push(ft, makeGo ? goSig(nextRule) : stopSig(nextRule), nextRule)) break;
+            busyUntil = round3(now + 0.72);
+          } else if (piece.type === "event") {
+            fillerUntil(anchor - 0.15);
+            if (!isGo(signal, rule)) {
+              var gt = Math.max(anchor - 0.1, now + yellow + 0.5, busyUntil + yellow + 0.16);
+              if (!push(gt, goSig(rule), rule)) break;
+            }
+            var et = round3(Math.max(now + yellow + 0.36, busyUntil + EVENT_LEAD + 0.58, 3.6));
+            if (et + 1.5 > limit - 2.05) break;
+            evs.push({ t: et, react: 0.5, dur: 1.5, id: piece.id });
+            busyUntil = round3(et + 1.5 + 0.58);
+          } else {
+            fillerUntil(anchor);
+            var lt = Math.max(anchor, now + yellow + 0.5, busyUntil + yellow + 0.16);
+            var hostGo = rand() < 0.55;
+            if (!push(lt, hostGo ? goSig(rule) : stopSig(rule), rule)) break;
+            var ls = round3(now + rf(0.42, 0.58));
+            var changeAt = round3(ls + rf(0.95, 1.18));
+            if (changeAt > limit - 3.1) break;
+            if (!push(changeAt, signal === "green" ? "red" : "green", rule)) break;
+            var le = round3(now + rf(0.58, 0.78));
+            if (le > limit - 2.05 || le < ls + 1.4) break;
+            locks.push({ warn: ls, start: ls, end: le });
+            busyUntil = round3(le + 0.58);
+          }
+        }
+        fillerUntil(limit - 2.35);
+        return {
+          name: "終極挑戰",
+          yellow: yellow,
+          react: 0.32,
+          limit: limit,
+          move: 8,
+          locks: locks,
+          events: evs,
+          lights: lights
+        };
+      }
+
+      function generateChallenge(seed) {
+        var base = seed >>> 0;
+        var best = null;
+        for (var attempt = 0; attempt < 24; attempt++) {
+          var draft = buildChallenge(mulberry32((base + attempt * 9973) >>> 0));
+          draft.seed = base;
+          draft.problems = auditChallenge(draft);
+          var perf = simFinal(draft, "perf");
+          var prompt = simFinal(draft, "prompt");
+          var hesitant = simFinal(draft, "hesitant");
+          var move = perf.died ? 0 : perf.moved * 0.78;
+          if (!prompt.died && move > prompt.moved - 0.4) move = Math.max(0, prompt.moved - 0.45);
+          draft.move = Math.round(Math.max(8, move) * 100) / 100;
+          draft.perf = perf.moved;
+          draft.prompt = prompt.moved;
+          draft.hesitant = hesitant.moved;
+          draft.perfDied = perf.died;
+          draft.promptDied = prompt.died;
+          draft.hesitantDied = hesitant.died;
+          var promptCourse = simFinal(draft, "prompt");
+          var hesitantCourse = simFinal(draft, "hesitant");
+          draft.promptWon = !promptCourse.died && promptCourse.moved + 1e-6 >= draft.move;
+          draft.hesitantWon = !hesitantCourse.died && hesitantCourse.moved + 1e-6 >= draft.move;
+          if (perf.died || prompt.died || !draft.promptWon) draft.problems = draft.problems.concat(["unfair"]);
+          if (!best || draft.problems.length < best.problems.length) best = draft;
+          if (draft.problems.length === 0 && draft.promptWon) return draft;
+        }
+        return best;
+      }
+
       var finalSpec = null;
       var finalSeed = 0;
       var finalRun = 0;
       var forcedSeed = null;
+      var challengeSpec = null;
+      var challengeSeed = 0;
+      var challengeRun = 0;
+      var forcedChallenge = null;
       var urlSeed = null;
       try {
         var seedParam = new URLSearchParams(location.search).get("seed");
@@ -1373,8 +1599,19 @@
         if (urlSeed != null) return (urlSeed + finalRun++) >>> 0;
         return (Math.floor(Math.random() * 0x7fffffff)) >>> 0;
       }
+      function nextChallengeSeed() {
+        if (forcedChallenge != null) {
+          var picked = forcedChallenge >>> 0;
+          forcedChallenge = null;
+          return picked;
+        }
+        if (urlSeed != null) return (urlSeed + challengeRun++) >>> 0;
+        return (Math.floor(Math.random() * 0x7fffffff)) >>> 0;
+      }
       function applyLevel(id) {
-        var spec = id === "final" && finalSpec ? finalSpec : LEVELS[id];
+        var spec = LEVELS[id];
+        if (id === "final" && finalSpec) spec = finalSpec;
+        if (id === "challenge" && challengeSpec) spec = challengeSpec;
         levelId = id;
         YELLOW = spec.yellow;
         REACT = spec.react;
@@ -1434,7 +1671,7 @@
           var data = JSON.parse(raw);
           if (!data || typeof data !== "object") return;
           if (data.v === 2 && data.levels) {
-            ["normal", "reverse", "lock", "mix", "event", "final"].forEach(function (key) {
+            ["normal", "reverse", "lock", "mix", "event", "final", "challenge"].forEach(function (key) {
               var item = data.levels[key];
               if (!item) return;
               if (typeof item.bestTimeMs === "number" && item.bestTimeMs > 0 && item.bestTimeMs < 120000) bests[key].bestTimeMs = item.bestTimeMs;
@@ -1477,6 +1714,7 @@
         setText(document.getElementById("bestMix"), scoreText(bests.mix));
         setText(document.getElementById("bestEvent"), scoreText(bests.event));
         setText(document.getElementById("bestFinal"), scoreText(bests.final));
+        setText(document.getElementById("bestChallenge"), scoreText(bests.challenge));
       }
 
       function rememberProgress() {
@@ -1992,6 +2230,9 @@
         if (levelId === "final") {
           finalSpec = generateFinal(nextFinalSeed());
           finalSeed = finalSpec.seed;
+        } else if (levelId === "challenge") {
+          challengeSpec = generateChallenge(nextChallengeSeed());
+          challengeSeed = challengeSpec.seed;
         }
         applyLevel(levelId);
         mode = "playing";
@@ -2185,10 +2426,58 @@
           resume: function () { resume(); },
           restart: function () { restart(); },
           generateFinal: function (seed) { return generateFinal(seed >>> 0); },
+          generateChallenge: function (seed) { return generateChallenge(seed >>> 0); },
           playSeed: function (seed) {
             forcedSeed = seed >>> 0;
             levelId = "final";
             freshChallenge();
+          },
+          playChallenge: function (seed) {
+            forcedChallenge = seed >>> 0;
+            levelId = "challenge";
+            freshChallenge();
+          },
+          autoLevel: function (id, profile) {
+            levelId = id;
+            if (id === "challenge") {
+              forcedChallenge = (profile && profile.seed != null ? profile.seed : 1) >>> 0;
+            }
+            freshChallenge();
+            var delays = (profile && profile.hesitant)
+              ? { event: 0.62, lamp: 0.5, yellowStop: 0.33, release: 0.55, yellowGo: 0.55 }
+              : { event: 0.28, lamp: 0.28, yellowStop: 0.12, release: 0.26, yellowGo: 0.22 };
+            var steps = 0;
+            while (mode === "playing" && steps < 4500) {
+              var info = phaseAt(elapsed);
+              var ev = eventAt(elapsed);
+              var lk = lockAt(elapsed);
+              var age = elapsed - info.phase.t;
+              var want;
+              if (ev && ev.phase === "stop") want = true;
+              else if (ev) want = (elapsed - ev.event.t) >= delays.event;
+              else if (lk && lk.phase === "active" && lockSnap !== null) want = lockSnap;
+              else if (lk && lk.phase === "active") want = braking;
+              else if (info.phase.signal === "yellow") {
+                var nr = info.next ? requiredOf(info.next) : "go";
+                want = nr === "stop" ? age >= delays.yellowStop : (age < delays.yellowGo ? braking : false);
+              } else if (requiredOf(info.phase) === "stop") want = age >= delays.lamp ? true : braking;
+              else want = braking && age < delays.release ? true : false;
+              debugBrake = want;
+              syncBraking();
+              stepOnce(0.02);
+              steps++;
+            }
+            debugBrake = null;
+            syncBraking();
+            return {
+              mode: mode,
+              elapsed: Math.round(elapsed * 100) / 100,
+              level: levelId,
+              seed: levelId === "challenge" ? challengeSeed : finalSeed,
+              limit: roundLimit(),
+              result: result ? result.kind : "",
+              detail: result ? result.detail : ""
+            };
           },
           state: function () {
             var info = phaseAt(elapsed);
@@ -2216,7 +2505,7 @@
               pausedReason: pausedReason,
               result: result,
               level: levelId,
-              seed: finalSeed,
+              seed: levelId === "challenge" ? challengeSeed : finalSeed,
               limit: roundLimit(),
               teachStep: teach.step,
               teachReady: teach.ready,
