@@ -112,7 +112,7 @@
       font-size: 14px;
       font-weight: 700;
     }
-    #bestLine { color: var(--muted); font-size: 13px; line-height: 1.3; min-height: 1.3em; }
+    #bestLine { color: var(--muted); font-size: 13px; line-height: 1.35; min-height: 1.35em; overflow-wrap: anywhere; }
     #storageNote { color: var(--amber); font-size: 12px; line-height: 1.4; }
 
     #signal { display: flex; align-items: center; gap: 10px; min-height: 96px; }
@@ -588,8 +588,12 @@
     }
     #menu h2 { font-size: 26px; font-weight: 700; margin: 0 0 8px; color: #171b1f; }
     #menu button {
-      height: 46px;
+      min-height: 46px;
+      height: auto;
       margin-top: 4px;
+      padding: 8px 12px;
+      line-height: 1.25;
+      white-space: normal;
       background: #fffdf8;
       color: #171b1f;
       border: 2px solid #171b1f;
@@ -676,7 +680,7 @@
       #cardBtn, #menuBtn, #startBtn { height: 44px; margin-top: 8px; }
       #menu { padding: 10px 14px 12px; }
       #menu h2 { font-size: 22px; margin-bottom: 4px; }
-      #menu button { height: 40px; margin-top: 2px; }
+      #menu button { min-height: 40px; height: auto; margin-top: 2px; padding: 6px 10px; font-size: 16px; }
       #menu .lvl-best { margin: 1px 0 4px; font-size: 12px; }
       #menu .lvl-sub { margin: 0 2px 2px; font-size: 12px; }
     }
@@ -770,7 +774,7 @@
           <p id="preNum">3</p>
         </div>
         <div id="lockCard" hidden>
-          <p id="lockKicker">燈壞了</p>
+          <p id="lockKicker">你個嘢壞咗</p>
           <p id="lockHold">保持通行</p>
           <p id="lockCount">0.0 秒</p>
         </div>
@@ -831,20 +835,20 @@
 
     <div id="menu" data-no-brake>
       <h2>選擇關卡</h2>
-      <button type="button" data-level="normal">正常燈</button>
+      <button type="button" data-level="normal">紅綠燈</button>
       <p class="lvl-best" id="bestNormal">尚無紀錄</p>
-      <button type="button" data-level="reverse">反轉</button>
+      <button type="button" data-level="reverse">倒轉地球</button>
       <p class="lvl-best" id="bestReverse">尚無紀錄</p>
-      <button type="button" data-level="lock">燈壞了</button>
+      <button type="button" data-level="lock">你個嘢壞咗</button>
       <p class="lvl-best" id="bestLock">尚無紀錄</p>
-      <button type="button" data-level="mix">混合挑戰</button>
+      <button type="button" data-level="mix">一時一樣</button>
       <p class="lvl-best" id="bestMix">尚無紀錄</p>
-      <button type="button" data-level="event">突發事件</button>
+      <button type="button" data-level="event">喂喂喂 嚇死人咩</button>
       <p class="lvl-best" id="bestEvent">尚無紀錄</p>
-      <button type="button" data-level="final">終極混合</button>
+      <button type="button" data-level="final">吓～又來過？</button>
       <p class="lvl-sub">每次隨機，限時40秒</p>
       <p class="lvl-best" id="bestFinal">尚無紀錄</p>
-      <button type="button" data-level="challenge">終極挑戰</button>
+      <button type="button" data-level="challenge">頂～邊有可能</button>
       <p class="lvl-sub">60秒・高難度</p>
       <p class="lvl-best" id="bestChallenge">尚無紀錄</p>
     </div>
@@ -872,7 +876,7 @@
       var STORAGE_KEY = "reverse-traffic-v1";
       var LEVELS = {
         normal: {
-          name: "正常燈", yellow: 0.8, react: 0.5, move: 13.2, locks: [],
+          name: "紅綠燈", yellow: 0.8, react: 0.5, move: 13.2, locks: [],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
             { t: 5.2, signal: "red", rule: "normal" },
@@ -884,7 +888,7 @@
           ]
         },
         reverse: {
-          name: "反轉", yellow: 0.55, react: 0.35, move: 14.9, locks: [],
+          name: "倒轉地球", yellow: 0.55, react: 0.35, move: 14.9, locks: [],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
             { t: 4.4, signal: "red", rule: "normal" },
@@ -897,7 +901,7 @@
           ]
         },
         lock: {
-          name: "燈壞了", yellow: 0.55, react: 0.35, move: 12.4, locks: [
+          name: "你個嘢壞咗", yellow: 0.55, react: 0.35, move: 12.4, locks: [
             { warn: 6.6, start: 9.6, end: 12.35 },
             { warn: 15.3, start: 18.3, end: 21.35 }
           ],
@@ -914,7 +918,7 @@
           ]
         },
         mix: {
-          name: "混合挑戰", yellow: 0.5, react: 0.35, move: 14.2, locks: [
+          name: "一時一樣", yellow: 0.5, react: 0.35, move: 14.2, locks: [
             { warn: 6.7, start: 9.7, end: 12.5 },
             { warn: 15.9, start: 18.9, end: 22.1 }
           ],
@@ -931,7 +935,7 @@
           ]
         },
         event: {
-          name: "突發事件", yellow: 0.55, react: 0.4, move: 11.2, locks: [],
+          name: "喂喂喂 嚇死人咩", yellow: 0.55, react: 0.4, move: 11.2, locks: [],
           events: [
             { t: 7.2, react: 0.6, dur: 2.2, id: "grandma" },
             { t: 14.2, react: 0.6, dur: 2.2, id: "spidey" },
@@ -948,7 +952,7 @@
           ]
         },
         final: {
-          name: "終極混合", yellow: 0.5, react: 0.5, limit: 40, move: 12, locks: [
+          name: "吓～又來過？", yellow: 0.5, react: 0.5, limit: 40, move: 12, locks: [
             { warn: 12, start: 12, end: 15 }
           ],
           events: [
@@ -961,7 +965,7 @@
           ]
         },
         challenge: {
-          name: "終極挑戰", yellow: 0.38, react: 0.32, limit: 60, move: 24, locks: [],
+          name: "頂～邊有可能", yellow: 0.38, react: 0.32, limit: 60, move: 24, locks: [],
           events: [],
           lights: [
             { t: 0, signal: "green", rule: "normal", safe: true },
@@ -1365,7 +1369,7 @@
         }
         fillerUntil(37.2);
         var draft = {
-          name: "終極混合",
+          name: "吓～又來過？",
           yellow: 0.5,
           react: 0.5,
           limit: 40,
@@ -1536,7 +1540,7 @@
         }
         fillerUntil(limit - 2.35);
         return {
-          name: "終極挑戰",
+          name: "頂～邊有可能",
           yellow: yellow,
           react: 0.32,
           limit: limit,
@@ -1764,7 +1768,7 @@
           kind: "lock",
           kicker: "出局",
           title: held ? "要保持停止" : "要保持通行",
-          detail: held ? "燈壞了，要保持停止，你放開了。" : "燈壞了，要保持通行，你按住了。",
+          detail: held ? "你個嘢壞咗，要保持停止，你放開了。" : "你個嘢壞咗，要保持通行，你按住了。",
           meta: "進度 " + Math.floor(progress) + "%"
         };
         releaseInputs();
@@ -1776,7 +1780,7 @@
         var copy = EVENT_COPY[ev.id] || EVENT_COPY.grandma;
         result = {
           kind: "event",
-          kicker: "突發事件",
+          kicker: "喂喂喂 嚇死人咩",
           title: "這時必須停止",
           detail: copy.detail,
           meta: "進度 " + Math.floor(progress) + "%"
@@ -2143,7 +2147,7 @@
             cardModel = {
               kind: "pause",
               kicker: "已暫停",
-              title: "燈壞了",
+              title: "你個嘢壞咗",
               detail: lockSnap ? "保持停止" : "保持通行",
               meta: "",
               btn: "繼續"
