@@ -778,7 +778,13 @@
       padding: 16px;
       box-shadow: 6px 6px 0 var(--shadow);
     }
-    .card-kicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
+    .card-kicker {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
     .card[data-kind="lose"] .card-kicker { color: #9d1f2c; }
     .card[data-kind="win"] .card-kicker { color: #0e6b3c; }
     #cardTitle { font-size: 32px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
@@ -3011,7 +3017,7 @@
         result = {
           kind: "move",
           law: law,
-          kicker: "出局",
+          kicker: "出局！你趕住去投胎咩？！",
           title: "",
           detail: detail,
           meta: "進度 " + Math.floor(progress) + "%"
@@ -3031,7 +3037,7 @@
         result = {
           kind: "time",
           law: "time",
-          kicker: "時間到",
+          kicker: "時間到！唔好阻住地球轉！",
           title: "",
           detail: detail,
           meta: "進度 " + Math.floor(progress) + "%"
