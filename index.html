@@ -1021,6 +1021,8 @@
           <p class="lvl-meta"><span class="lvl-best" id="bestNormal">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
           <button type="button" data-level="reverse">倒轉地球</button>
           <p class="lvl-meta"><span class="lvl-best" id="bestReverse">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+          <button type="button" data-level="flipfest">反轉極樂園</button>
+          <p class="lvl-meta"><span class="lvl-best" id="bestFlipfest">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
           <button type="button" data-level="lock">你個嘢壞咗</button>
           <p class="lvl-meta"><span class="lvl-best" id="bestLock">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
           <button type="button" data-level="mix">一時一樣</button>
@@ -1029,13 +1031,11 @@
           <p class="lvl-meta"><span class="lvl-best" id="bestEvent">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
           <button type="button" data-level="final">吓～又來過？</button>
           <p class="lvl-meta"><span class="lvl-best" id="bestFinal">尚無紀錄</span><span class="lvl-limit">40 秒</span></p>
-          <button type="button" data-level="challenge">頂～邊有可能</button>
-          <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
         </div>
         <div class="menu-page" id="menuPage2" data-menu-page="2" hidden>
           <div class="menu-slot">
-            <button type="button" data-level="flipfest">反轉極樂園</button>
-            <p class="lvl-meta"><span class="lvl-best" id="bestFlipfest">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
+            <button type="button" data-level="challenge">頂～邊有可能</button>
+            <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
           </div>
         </div>
       </div>
@@ -1345,16 +1345,16 @@
       var lastTs = performance.now();
       var storageOk = true;
       function blankScore() { return { bestTimeMs: null, bestProgress: 0 }; }
-      var SCORE_KEYS = ["normal", "reverse", "lock", "mix", "event", "final", "challenge", "flipfest"];
+      var SCORE_KEYS = ["normal", "reverse", "flipfest", "lock", "mix", "event", "final", "challenge"];
       var MENU_BEST = {
         normal: "bestNormal",
         reverse: "bestReverse",
+        flipfest: "bestFlipfest",
         lock: "bestLock",
         mix: "bestMix",
         event: "bestEvent",
         final: "bestFinal",
-        challenge: "bestChallenge",
-        flipfest: "bestFlipfest"
+        challenge: "bestChallenge"
       };
       var bests = {};
       SCORE_KEYS.forEach(function (key) { bests[key] = blankScore(); });
