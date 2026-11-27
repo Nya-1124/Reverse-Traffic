@@ -685,6 +685,8 @@
     }
 
     #pedal {
+      position: relative;
+      z-index: 1;
       flex: none;
       min-height: 124px;
       border-radius: 18px;
@@ -717,7 +719,7 @@
       position: absolute;
       right: 10px;
       bottom: 10px;
-      z-index: 4;
+      z-index: 6;
       width: 68px;
       height: 68px;
       padding: 0;
@@ -731,7 +733,8 @@
       justify-content: center;
       gap: 1px;
       line-height: 1;
-      touch-action: manipulation;
+      touch-action: none;
+      pointer-events: auto;
     }
     #hornBtn .horn-mark { font-size: 22px; font-weight: 700; }
     #hornBtn .horn-label { font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
@@ -3630,38 +3633,45 @@
         if (event.pointerType === "mouse" && event.button !== 0) return;
         event.preventDefault();
         pointers.add(event.pointerId);
-        try { app.setPointerCapture(event.pointerId); } catch (err) {}
         syncBraking();
         render();
       }
 
+      function dropBrakePointer(pointerId) {
+        if (!pointers.has(pointerId)) return false;
+        pointers.delete(pointerId);
+        return true;
+      }
+
       app.addEventListener("pointerdown", onPointerDown, { passive: false });
       window.addEventListener("pointerup", function (event) {
-        pointers.delete(event.pointerId);
+        if (!pointers.has(event.pointerId)) return;
+        dropBrakePointer(event.pointerId);
         syncBraking();
         render();
       });
-      window.addEventListener("pointercancel", function () {
-        pointers.clear();
-        if (mode === "playing" || mode === "teaching") enterPause("cancel");
-        else { syncBraking(); render(); }
-      });
-      app.addEventListener("lostpointercapture", function (event) {
-        pointers.delete(event.pointerId);
+      window.addEventListener("pointercancel", function (event) {
+        if (!dropBrakePointer(event.pointerId)) return;
         syncBraking();
-        render();
+        if (pointers.size === 0 && !spaceHeld && (mode === "playing" || mode === "teaching")) enterPause("cancel");
+        else render();
       });
       window.addEventListener("touchend", function (event) {
-        if (event.touches.length === 0) {
-          pointers.clear();
-          syncBraking();
-          render();
-        }
+        var ended = event.changedTouches;
+        for (var i = 0; i < ended.length; i++) dropBrakePointer(ended[i].identifier);
+        syncBraking();
+        render();
       }, { passive: true });
-      window.addEventListener("touchcancel", function () {
-        pointers.clear();
-        if (mode === "playing" || mode === "teaching") enterPause("cancel");
-        else { syncBraking(); render(); }
+      window.addEventListener("touchcancel", function (event) {
+        var ended = event.changedTouches;
+        var dropped = false;
+        for (var i = 0; i < ended.length; i++) {
+          if (dropBrakePointer(ended[i].identifier)) dropped = true;
+        }
+        if (!dropped) return;
+        syncBraking();
+        if (pointers.size === 0 && !spaceHeld && (mode === "playing" || mode === "teaching")) enterPause("cancel");
+        else render();
       }, { passive: true });
       window.addEventListener("contextmenu", function (event) { event.preventDefault(); });
 
@@ -3707,12 +3717,27 @@
         if (mode === "playing" || mode === "teaching") enterPause("manual");
       });
       if (hornBtn) {
+        var hornFromPointer = false;
         hornBtn.addEventListener("pointerdown", function (event) {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          event.preventDefault();
+          event.stopPropagation();
+          hornFromPointer = true;
+          tryHorn();
+        });
+        hornBtn.addEventListener("pointerup", function (event) {
+          event.stopPropagation();
+        });
+        hornBtn.addEventListener("pointercancel", function (event) {
           event.stopPropagation();
         });
         hornBtn.addEventListener("click", function (event) {
           event.preventDefault();
           event.stopPropagation();
+          if (hornFromPointer) {
+            hornFromPointer = false;
+            return;
+          }
           tryHorn();
         });
       }
