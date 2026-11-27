@@ -625,8 +625,8 @@
       font-weight: 700;
       line-height: 1.35;
     }
-    #menu .lvl-limit { flex: none; }
-    #menu .lvl-best { margin: 0; text-align: right; }
+    #menu .lvl-best { margin: 0; text-align: left; }
+    #menu .lvl-limit { flex: none; margin-left: auto; text-align: right; }
     #replayBtn {
       width: 100%;
       height: 48px;
@@ -902,19 +902,19 @@
     <div id="menu" data-no-brake>
       <h2>選擇關卡</h2>
       <button type="button" data-level="normal">紅綠燈</button>
-      <p class="lvl-meta"><span class="lvl-limit">30 秒</span><span class="lvl-best" id="bestNormal">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestNormal">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
       <button type="button" data-level="reverse">倒轉地球</button>
-      <p class="lvl-meta"><span class="lvl-limit">30 秒</span><span class="lvl-best" id="bestReverse">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestReverse">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
       <button type="button" data-level="lock">你個嘢壞咗</button>
-      <p class="lvl-meta"><span class="lvl-limit">30 秒</span><span class="lvl-best" id="bestLock">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestLock">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
       <button type="button" data-level="mix">一時一樣</button>
-      <p class="lvl-meta"><span class="lvl-limit">30 秒</span><span class="lvl-best" id="bestMix">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestMix">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
       <button type="button" data-level="event">喂喂喂 嚇死人咩</button>
-      <p class="lvl-meta"><span class="lvl-limit">30 秒</span><span class="lvl-best" id="bestEvent">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestEvent">尚無紀錄</span><span class="lvl-limit">30 秒</span></p>
       <button type="button" data-level="final">吓～又來過？</button>
-      <p class="lvl-meta"><span class="lvl-limit">40 秒</span><span class="lvl-best" id="bestFinal">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestFinal">尚無紀錄</span><span class="lvl-limit">40 秒</span></p>
       <button type="button" data-level="challenge">頂～邊有可能</button>
-      <p class="lvl-meta"><span class="lvl-limit">60 秒</span><span class="lvl-best" id="bestChallenge">尚無紀錄</span></p>
+      <p class="lvl-meta"><span class="lvl-best" id="bestChallenge">尚無紀錄</span><span class="lvl-limit">60 秒</span></p>
     </div>
 
     <div id="overlay" hidden data-no-brake>
